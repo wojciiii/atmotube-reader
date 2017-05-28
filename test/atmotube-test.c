@@ -16,15 +16,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-	
 #include <check.h>
- 	
+
+#include "atmotube.h"
+
 START_TEST (test_name)
 {
 	printf("test_name\n");
-	ck_assert(1==0);
-	//ck_assert(1==1);
+	//ck_assert(1==0);
+	ck_assert(1==1);
 }
 
 END_TEST
@@ -51,12 +51,17 @@ int main(void)
     Suite *s;
     SRunner *sr;
 
+    atmotube_start();
+
     s = atmreader_suite();
     sr = srunner_create(s);
 
     srunner_run_all(sr, CK_NORMAL);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
+
+    atmotube_end();
+
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

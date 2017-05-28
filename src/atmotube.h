@@ -14,4 +14,40 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define SOMETHING 3
+#ifndef ATMOTUBE_H
+#define ATMOTUBE_H
+
+#include "gattlib.h"
+
+/*
+  Taken from: https://atmotube.com/api.html:
+  
+  db450001-8e9a-4818-add7-6ed94a328ab2 Atmotube service UUID
+  db450002-8e9a-4818-add7-6ed94a328ab2 VOC characteristic
+  db450003-8e9a-4818-add7-6ed94a328ab2 Humidity characteristic
+  db450004-8e9a-4818-add7-6ed94a328ab2 Temperature characteristic
+  db450005-8e9a-4818-add7-6ed94a328ab2 Status characteristic
+*/
+enum CHARACTER_ID
+{
+  VOC = 0,
+  HUMIDITY,
+  TEMPERATURE,
+  STATUS,
+  CHARACTER_MAX
+};
+
+void atmotube_start();
+void atmotube_end();
+
+void handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
+
+int notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
+int stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id);
+
+void handle_voc(const uint8_t* data, size_t data_length);
+void handle_humidity(const uint8_t* data, size_t data_length);
+void handle_temperature(const uint8_t* data, size_t data_length);
+void handle_status(const uint8_t* data, size_t data_length);
+
+#endif /* ATMOTUBE_H */
