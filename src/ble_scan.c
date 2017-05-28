@@ -1,3 +1,5 @@
+/* This is an example taken from gattlib. It will be removed at some point. */
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdint.h>
