@@ -19,15 +19,6 @@
 
 #include "gattlib.h"
 
-/*
-  Taken from: https://atmotube.com/api.html:
-  
-  db450001-8e9a-4818-add7-6ed94a328ab2 Atmotube service UUID
-  db450002-8e9a-4818-add7-6ed94a328ab2 VOC characteristic
-  db450003-8e9a-4818-add7-6ed94a328ab2 Humidity characteristic
-  db450004-8e9a-4818-add7-6ed94a328ab2 Temperature characteristic
-  db450005-8e9a-4818-add7-6ed94a328ab2 Status characteristic
-*/
 enum CHARACTER_ID
 {
   VOC = 0,
@@ -37,17 +28,38 @@ enum CHARACTER_ID
   CHARACTER_MAX
 };
 
+struct stored
+{
+	uint64_t timestamp;
+	float    voc;
+	int      temperature;
+	int      humidity;
+};
+
+struct atmotube_data
+{
+	char* deviceAddress;
+	gatt_connection_t* connection;
+	int resolution;
+};
+// max - max devices
+// resolution - resolution is in miliseconds.
+
 void atmotube_start();
 void atmotube_end();
 
-void handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
+void atmotube_add_device(struct atmotube_data* atmotube);
 
-int notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
-int stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id);
+void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
 
-void handle_voc(const uint8_t* data, size_t data_length);
-void handle_humidity(const uint8_t* data, size_t data_length);
-void handle_temperature(const uint8_t* data, size_t data_length);
-void handle_status(const uint8_t* data, size_t data_length);
+int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
+int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id);
+
+void atmotube_handle_voc(const uint8_t* data, size_t data_length);
+void atmotube_handle_humidity(const uint8_t* data, size_t data_length);
+void atmotube_handle_temperature(const uint8_t* data, size_t data_length);
+void atmotube_handle_status(const uint8_t* data, size_t data_length);
+
+uuid_t* atmotube_getuuid(enum CHARACTER_ID id);
 
 #endif /* ATMOTUBE_H */

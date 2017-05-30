@@ -65,14 +65,14 @@ int main(int argc, char *argv[]) {
 	printf("Connected\n");
 
   printf("Register notification\n");
-  gattlib_register_notification(connection, handle_notification, NULL);
+  gattlib_register_notification(connection, atmotube_handle_notification, NULL);
   printf("Register notification done\n");
 
 	ret = 0;
-  ret += notify_on_characteristic(connection, VOC);
-	ret += notify_on_characteristic(connection, HUMIDITY);
-	ret += notify_on_characteristic(connection, TEMPERATURE);
-	ret += notify_on_characteristic(connection, STATUS);
+  ret += atmotube_notify_on_characteristic(connection, VOC);
+	ret += atmotube_notify_on_characteristic(connection, HUMIDITY);
+	ret += atmotube_notify_on_characteristic(connection, TEMPERATURE);
+	ret += atmotube_notify_on_characteristic(connection, STATUS);
 
 	if (ret != 0)
 	{
@@ -86,10 +86,10 @@ int main(int argc, char *argv[]) {
 
 	g_main_loop_unref(loop);
 
-  stop_notification(connection, VOC);
-	stop_notification(connection, HUMIDITY);
-	stop_notification(connection, TEMPERATURE);
-	stop_notification(connection, STATUS);
+  atmotube_stop_notification(connection, VOC);
+	atmotube_stop_notification(connection, HUMIDITY);
+	atmotube_stop_notification(connection, TEMPERATURE);
+	atmotube_stop_notification(connection, STATUS);
 
   printf("Disconnecting\n");
 

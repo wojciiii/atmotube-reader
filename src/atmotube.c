@@ -17,10 +17,19 @@
 #include "atmotube.h"
 #include <unistd.h>
 #include <stdlib.h>
-
-// int CHARACTER_IDS[] = { VOC, HUMIDITY, TEMPERATURE, STATUS };
+#include <time.h>
 
 #define NUM_UUIDS 4
+
+#ifndef DEBUG
+#define DEBUG 1
+#endif
+
+#if (DEBUG)
+#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#else
+#  define PRINT_DEBUG(fmt, ...)
+#endif
 
 static char* CHARACTER_UUIDS[NUM_UUIDS] = {
   "db450002-8e9a-4818-add7-6ed94a328ab2",
@@ -31,38 +40,46 @@ static char* CHARACTER_UUIDS[NUM_UUIDS] = {
 
 static uuid_t UUIDS[NUM_UUIDS] = { CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0) };
 
-void handle_voc(const uint8_t* data, size_t data_length)
+static uint64_t getTimeStamp() {
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+}
+
+void atmotube_handle_voc(const uint8_t* data, size_t data_length)
+{
+	uint16_t voc_input = *(data+1) | ((uint16_t)*(data)) << 8;
+	double voc = voc_input / 100.0f;
+	PRINT_DEBUG("handle_voc: %ld, %f\n", voc_input, voc);
+}
+
+void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
 {
 
 }
 
-void handle_humidity(const uint8_t* data, size_t data_length)
+void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
 {
 
 }
 
-void handle_temperature(const uint8_t* data, size_t data_length)
+void atmotube_handle_status(const uint8_t* data, size_t data_length)
 {
 
 }
 
-void handle_status(const uint8_t* data, size_t data_length)
-{
-
-}
-
-void handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data)
+void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data)
 {
   int i;
   enum CHARACTER_ID id = CHARACTER_MAX;
 
-  printf("Notification Handler: ");
+  PRINT_DEBUG("Notification Handler: \n");
 
-  for (i = VOC; i < STATUS; i++)
+  for (i = VOC; i < CHARACTER_MAX; i++)
   {
     if (gattlib_uuid_cmp(uuid, &UUIDS[i]) == 0)
     {
-      printf("Found id %d\n", i);
+      PRINT_DEBUG("Found id %d\n", i);
       id = (enum CHARACTER_ID)i;
       break;
     }
@@ -71,66 +88,66 @@ void handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_le
   switch (id)
   {
     case VOC:
-      printf("VOC\n");
-      handle_voc(data, data_length);
+      PRINT_DEBUG("VOC\n");
+      atmotube_handle_voc(data, data_length);
       break;
     case HUMIDITY:
-      printf("HUMIDITY\n");
-      handle_humidity(data, data_length);
+      PRINT_DEBUG("HUMIDITY\n");
+      atmotube_handle_humidity(data, data_length);
       break;
     case TEMPERATURE:
-      printf("TEMPERATURE\n");
-      handle_temperature(data, data_length);
+      PRINT_DEBUG("TEMPERATURE\n");
+      atmotube_handle_temperature(data, data_length);
       break;
     case STATUS:
-      printf("STATUS\n");
-      handle_status(data, data_length);
+      PRINT_DEBUG("STATUS\n");
+      atmotube_handle_status(data, data_length);
       break;
     default:
-      printf("UNKN %d\n", id);
+      PRINT_DEBUG("UNKN %d\n", id);
       break;
   }
 
   for (i = 0; i < data_length; i++)
   {
-    printf("%02x ", data[i]);
+    PRINT_DEBUG("%02x ", data[i]);
   }
-  printf("\n");
+  PRINT_DEBUG("\n");
 }
 
-int notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id)
+int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id)
 {
   const char* str_uuid = CHARACTER_UUIDS[id];
   uuid_t uuid;
   int ret;
   
-  printf("Register notification for %s.\n", str_uuid);
+  PRINT_DEBUG("Register notification for %s.\n", str_uuid);
 
   ret = gattlib_string_to_uuid(str_uuid, strlen(str_uuid), &UUIDS[id]);
   if (ret != 0)
   {
-    printf("gattlib_string_to_uuid (ret=%d)\n", ret);
+    PRINT_DEBUG("gattlib_string_to_uuid (ret=%d)\n", ret);
     return 1;
   }
 
   ret = gattlib_notification_start(connection, &UUIDS[id]);
   if (ret) {
-    fprintf(stderr, "Fail to start notification (ret=%d)\n.", ret);
+    PRINT_DEBUG("Fail to start notification (ret=%d)\n.", ret);
     return 1;
   }
 
   return 0;
 }
 
-int stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id)
+int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id)
 {
   const char* str_uuid = CHARACTER_UUIDS[id];
   int ret;
-  printf("Stop notifications for %s.\n", str_uuid);
+  PRINT_DEBUG("Stop notifications for %s.\n", str_uuid);
   ret = gattlib_notification_stop(connection, &UUIDS[id]);
   if (ret != 0)
   {
-    fprintf(stderr, "Failed to stop notification (ret=%d)\n.", ret);
+    PRINT_DEBUG("Failed to stop notification (ret=%d)\n.", ret);
     return 1;
   }
 
@@ -147,7 +164,7 @@ void atmotube_start()
   		ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
 		if (ret != 0)
   		{
-    		printf("gattlib_string_to_uuid failed (ret=%d)\n", ret);
+    		PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
     		exit(1);
   		}
   	}
@@ -156,4 +173,14 @@ void atmotube_start()
 void atmotube_end()
 {
 
+}
+
+void atmotube_add_device(struct atmotube_data* atmotube)
+{
+	
+}
+
+uuid_t* atmotube_getuuid(enum CHARACTER_ID id)
+{
+	return &UUIDS[id];
 }
