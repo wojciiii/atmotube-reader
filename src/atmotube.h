@@ -17,7 +17,7 @@
 #ifndef ATMOTUBE_H
 #define ATMOTUBE_H
 
-#include "gattlib.h"
+#include <gattlib.h>
 
 enum CHARACTER_ID
 {
@@ -28,6 +28,13 @@ enum CHARACTER_ID
   CHARACTER_MAX
 };
 
+#define ATMOTUBE_MIN_RESOUTION 100     /* ms */
+#define ATMOTUBE_MAX_RESOUTION 60*1000 /* ms */
+#define ATMOTUBE_DEF_RESOUTION 1000    /* ms */
+
+#define ATMOTUBE_RET_OK 0
+#define ATMOTUBE_RET_ERROR 1
+
 struct stored
 {
 	uint64_t timestamp;
@@ -36,19 +43,26 @@ struct stored
 	int      humidity;
 };
 
-struct atmotube_data
-{
-	char* deviceAddress;
-	gatt_connection_t* connection;
-	int resolution;
-};
 // max - max devices
 // resolution - resolution is in miliseconds.
 
 void atmotube_start();
 void atmotube_end();
 
-void atmotube_add_device(struct atmotube_data* atmotube);
+// Search for atmotube devices.
+int atmotube_search();
+
+// Return the number of found devices.
+int atmotube_num_found_devices();
+
+// Get list of found devices.
+char** atmotube_get_found_devices();
+
+// Add a device to the list of connectable Atmotube devices.
+int atmotube_add_device(char* deviceAddress, int resolution);
+
+// Connect to configured devices.
+int atmotube_connect();
 
 void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
 

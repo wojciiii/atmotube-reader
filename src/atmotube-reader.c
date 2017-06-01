@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 	int ret;
 	gatt_connection_t* connection;
   // TODO: remove hardcoded address.
-	char* deviceAddress = "F7:35:49:55:35:E5";
+	const char* deviceAddress = "F7:35:49:55:35:E5";
 
   atmotube_start();
 	signal(SIGINT, intHandler);

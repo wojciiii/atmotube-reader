@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
+#include <glib.h>
 
 #define NUM_UUIDS 4
 
@@ -30,6 +32,15 @@
 #else
 #  define PRINT_DEBUG(fmt, ...)
 #endif
+
+typedef struct
+{
+	char* deviceAddress;
+	gatt_connection_t* connection;
+	int resolution;
+} AtmotubeData;
+
+GSList* dataPtr;
 
 static char* CHARACTER_UUIDS[NUM_UUIDS] = {
   "db450002-8e9a-4818-add7-6ed94a328ab2",
@@ -118,7 +129,7 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
 int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id)
 {
   const char* str_uuid = CHARACTER_UUIDS[id];
-  uuid_t uuid;
+  //uuid_t uuid;
   int ret;
   
   PRINT_DEBUG("Register notification for %s.\n", str_uuid);
@@ -168,6 +179,8 @@ void atmotube_start()
     		exit(1);
   		}
   	}
+
+  	dataPtr = NULL;
 }
 
 void atmotube_end()
@@ -175,9 +188,43 @@ void atmotube_end()
 
 }
 
-void atmotube_add_device(struct atmotube_data* atmotube)
+int atmotube_search()
 {
-	
+	return ATMOTUBE_RET_ERROR;
+}
+
+int atmotube_num_found_devices()
+{
+	return 0;
+}
+
+char** atmotube_get_found_devices()
+{
+	return NULL;
+}
+
+int atmotube_add_device(char* deviceAddress, int resolution)
+{
+	if (resolution < ATMOTUBE_MIN_RESOUTION)
+	{
+		PRINT_DEBUG("Resulution is invalid(%d < %d)\n", resolution, ATMOTUBE_MIN_RESOUTION);
+		return ATMOTUBE_RET_ERROR;
+	}
+
+	if (resolution > ATMOTUBE_MAX_RESOUTION)
+	{
+		PRINT_DEBUG("Resulution is invalid(%d > %d)\n", resolution, ATMOTUBE_MAX_RESOUTION);
+		return ATMOTUBE_RET_ERROR;
+	}
+
+	AtmotubeData* d = (AtmotubeData*)malloc(sizeof(AtmotubeData));
+	d->deviceAddress = deviceAddress;
+	d->connection = NULL;
+	d->resolution = resolution;
+
+	dataPtr = g_slist_append(dataPtr, d);
+
+	return ATMOTUBE_RET_OK;
 }
 
 uuid_t* atmotube_getuuid(enum CHARACTER_ID id)

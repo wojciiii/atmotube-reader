@@ -4,6 +4,8 @@ pkg_check_modules(GATTLIB REQUIRED gattlib)
 
 include(FindCheck.cmake)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused-function")
+
 if (CHECK_FOUND)
   message(STATUS "Found check")
 else (CHECK_FOUND)

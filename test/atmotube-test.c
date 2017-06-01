@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <check.h>
 
-#include "atmotube.h"
+#include <atmotube.h>
 
 /*
 START_TEST (test_name)
