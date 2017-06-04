@@ -37,10 +37,10 @@ enum CHARACTER_ID
 
 struct stored
 {
-	uint64_t timestamp;
-	float    voc;
-	int      temperature;
-	int      humidity;
+    uint64_t timestamp;
+    float    voc;
+    int      temperature;
+    int      humidity;
 };
 
 // max - max devices

@@ -35,9 +35,9 @@
 
 typedef struct
 {
-	char* deviceAddress;
-	gatt_connection_t* connection;
-	int resolution;
+  char* deviceAddress;
+  gatt_connection_t* connection;
+  int resolution;
 } AtmotubeData;
 
 GSList* dataPtr;
@@ -59,9 +59,9 @@ static uint64_t getTimeStamp() {
 
 void atmotube_handle_voc(const uint8_t* data, size_t data_length)
 {
-	uint16_t voc_input = *(data+1) | ((uint16_t)*(data)) << 8;
-	double voc = voc_input / 100.0f;
-	PRINT_DEBUG("handle_voc: %ld, %f\n", voc_input, voc);
+  uint16_t voc_input = *(data+1) | ((uint16_t)*(data)) << 8;
+  double voc = voc_input / 100.0f;
+  PRINT_DEBUG("handle_voc: %ld, %f\n", voc_input, voc);
 }
 
 void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
@@ -167,20 +167,20 @@ int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID 
 
 void atmotube_start()
 {
-	int i;
-	int ret;
+  int i;
+  int ret;
 
-	for (i = VOC; i < STATUS; i++)
-  	{
-  		ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
-		if (ret != 0)
-  		{
-    		PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
-    		exit(1);
-  		}
-  	}
+  for (i = VOC; i < STATUS; i++)
+    {
+      ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
+    if (ret != 0)
+      {
+        PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
+        exit(1);
+      }
+    }
 
-  	dataPtr = NULL;
+    dataPtr = NULL;
 }
 
 void atmotube_end()
@@ -190,44 +190,49 @@ void atmotube_end()
 
 int atmotube_search()
 {
-	return ATMOTUBE_RET_ERROR;
+  return ATMOTUBE_RET_ERROR;
 }
 
 int atmotube_num_found_devices()
 {
-	return 0;
+  return 0;
 }
 
 char** atmotube_get_found_devices()
 {
-	return NULL;
+  return NULL;
 }
 
 int atmotube_add_device(char* deviceAddress, int resolution)
 {
-	if (resolution < ATMOTUBE_MIN_RESOUTION)
-	{
-		PRINT_DEBUG("Resulution is invalid(%d < %d)\n", resolution, ATMOTUBE_MIN_RESOUTION);
-		return ATMOTUBE_RET_ERROR;
-	}
+  if (resolution < ATMOTUBE_MIN_RESOUTION)
+  {
+    PRINT_DEBUG("Resulution is invalid(%d < %d)\n", resolution, ATMOTUBE_MIN_RESOUTION);
+    return ATMOTUBE_RET_ERROR;
+  }
 
-	if (resolution > ATMOTUBE_MAX_RESOUTION)
-	{
-		PRINT_DEBUG("Resulution is invalid(%d > %d)\n", resolution, ATMOTUBE_MAX_RESOUTION);
-		return ATMOTUBE_RET_ERROR;
-	}
+  if (resolution > ATMOTUBE_MAX_RESOUTION)
+  {
+    PRINT_DEBUG("Resulution is invalid(%d > %d)\n", resolution, ATMOTUBE_MAX_RESOUTION);
+    return ATMOTUBE_RET_ERROR;
+  }
 
-	AtmotubeData* d = (AtmotubeData*)malloc(sizeof(AtmotubeData));
-	d->deviceAddress = deviceAddress;
-	d->connection = NULL;
-	d->resolution = resolution;
+  AtmotubeData* d = (AtmotubeData*)malloc(sizeof(AtmotubeData));
+  d->deviceAddress = deviceAddress;
+  d->connection = NULL;
+  d->resolution = resolution;
 
-	dataPtr = g_slist_append(dataPtr, d);
+  dataPtr = g_slist_append(dataPtr, d);
 
-	return ATMOTUBE_RET_OK;
+  return ATMOTUBE_RET_OK;
+}
+
+int atmotube_connect()
+{
+  return ATMOTUBE_RET_ERROR;
 }
 
 uuid_t* atmotube_getuuid(enum CHARACTER_ID id)
 {
-	return &UUIDS[id];
+  return &UUIDS[id];
 }

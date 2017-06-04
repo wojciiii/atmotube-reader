@@ -23,9 +23,9 @@
 /*
 START_TEST (test_name)
 {
-	printf("test_name\n");
-	//ck_assert(1==0);
-	ck_assert(1==1);
+    printf("test_name\n");
+    //ck_assert(1==0);
+    ck_assert(1==1);
 }
 END_TEST
 */

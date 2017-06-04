@@ -44,59 +44,59 @@ void intHandler(int dummy)
 }
 
 int main(int argc, char *argv[]) {
-	int ret;
-	gatt_connection_t* connection;
+    int ret;
+    gatt_connection_t* connection;
   // TODO: remove hardcoded address.
-	const char* deviceAddress = "F7:35:49:55:35:E5";
+    const char* deviceAddress = "F7:35:49:55:35:E5";
 
   atmotube_start();
-	signal(SIGINT, intHandler);
-	
+    signal(SIGINT, intHandler);
+    
   printf("Connecting\n");
 
-	connection = gattlib_connect(NULL, deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
-	if (connection == NULL)
-	{
-	  fprintf(stderr, "Fail to connect to the bluetooth device.\n");
+    connection = gattlib_connect(NULL, deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
+    if (connection == NULL)
+    {
+      fprintf(stderr, "Fail to connect to the bluetooth device.\n");
     atmotube_end();
-	  return 1;
-	}
+      return 1;
+    }
 
-	printf("Connected\n");
+    printf("Connected\n");
 
   printf("Register notification\n");
   gattlib_register_notification(connection, atmotube_handle_notification, NULL);
   printf("Register notification done\n");
 
-	ret = 0;
+    ret = 0;
   ret += atmotube_notify_on_characteristic(connection, VOC);
-	ret += atmotube_notify_on_characteristic(connection, HUMIDITY);
-	ret += atmotube_notify_on_characteristic(connection, TEMPERATURE);
-	ret += atmotube_notify_on_characteristic(connection, STATUS);
+    ret += atmotube_notify_on_characteristic(connection, HUMIDITY);
+    ret += atmotube_notify_on_characteristic(connection, TEMPERATURE);
+    ret += atmotube_notify_on_characteristic(connection, STATUS);
 
-	if (ret != 0)
-	{
-	  gattlib_disconnect(connection);
+    if (ret != 0)
+    {
+      gattlib_disconnect(connection);
     atmotube_end();
-	  return 1;
-	}
+      return 1;
+    }
 
-	loop = g_main_loop_new(NULL, 0);
-	g_main_loop_run(loop);
+    loop = g_main_loop_new(NULL, 0);
+    g_main_loop_run(loop);
 
-	g_main_loop_unref(loop);
+    g_main_loop_unref(loop);
 
   atmotube_stop_notification(connection, VOC);
-	atmotube_stop_notification(connection, HUMIDITY);
-	atmotube_stop_notification(connection, TEMPERATURE);
-	atmotube_stop_notification(connection, STATUS);
+    atmotube_stop_notification(connection, HUMIDITY);
+    atmotube_stop_notification(connection, TEMPERATURE);
+    atmotube_stop_notification(connection, STATUS);
 
   printf("Disconnecting\n");
 
-	gattlib_disconnect(connection);
+    gattlib_disconnect(connection);
 
-	printf("Done\n");
+    printf("Done\n");
 
   atmotube_end();
-	return 0;
+    return 0;
 }
