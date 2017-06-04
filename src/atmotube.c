@@ -20,6 +20,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <glib.h>
+#include <stdbool.h>
 
 #define NUM_UUIDS 4
 
@@ -38,6 +39,9 @@ typedef struct
   char* deviceAddress;
   gatt_connection_t* connection;
   int resolution;
+
+  bool connected;
+  bool registred;
 } AtmotubeData;
 
 GSList* dataPtr;
@@ -83,6 +87,7 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
 {
   int i;
   enum CHARACTER_ID id = CHARACTER_MAX;
+  AtmotubeData* d = (AtmotubeData*)user_data;
 
   PRINT_DEBUG("Notification Handler: \n");
 
@@ -129,7 +134,6 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
 int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id)
 {
   const char* str_uuid = CHARACTER_UUIDS[id];
-  //uuid_t uuid;
   int ret;
   
   PRINT_DEBUG("Register notification for %s.\n", str_uuid);
@@ -183,11 +187,6 @@ void atmotube_start()
     dataPtr = NULL;
 }
 
-void atmotube_end()
-{
-
-}
-
 int atmotube_search()
 {
   return ATMOTUBE_RET_ERROR;
@@ -221,18 +220,164 @@ int atmotube_add_device(char* deviceAddress, int resolution)
   d->deviceAddress = deviceAddress;
   d->connection = NULL;
   d->resolution = resolution;
+  d->connected  = 0;
+  d->registred  = 0;
 
   dataPtr = g_slist_append(dataPtr, d);
 
   return ATMOTUBE_RET_OK;
 }
 
+static void connect_impl(gpointer data,
+                         gpointer user_data)
+{
+  AtmotubeData* d = (AtmotubeData*)data;
+  int* ret = (int*)user_data;
+
+  PRINT_DEBUG("Connecting to %s\n", d->deviceAddress);
+
+  d->connection = gattlib_connect(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
+  if (d->connection == NULL)
+  {
+    PRINT_DEBUG("Failed to connect to the bluetooth device.\n");
+    d->connected = false;
+    *ret += 1;
+  }
+  else
+  {
+    d->connected = true;
+    PRINT_DEBUG("Connected\n");
+  }
+}
+
+static void disconnect_impl(gpointer data,
+                            gpointer user_data)
+{
+  AtmotubeData* d = (AtmotubeData*)data;
+  int* ret = (int*)user_data;
+
+  if (d->connected)
+  {
+    if (gattlib_disconnect(d->connection) != 0)
+    {
+      *ret += 1;
+      PRINT_DEBUG("gattlib_disconnect failed\n");
+      d->connected = false;
+    }
+    else
+    {
+     PRINT_DEBUG("Disconnected from %s\n", d->deviceAddress);
+    }
+  }
+}
+
 int atmotube_connect()
 {
-  return ATMOTUBE_RET_ERROR;
+  int ret = 0;
+  g_slist_foreach (dataPtr, connect_impl, &ret);
+
+  if (ret != 0)
+  {
+    return ATMOTUBE_RET_ERROR;
+  }
+  else
+  {
+    return ATMOTUBE_RET_OK;
+  }
+}
+
+int atmotube_disconnect()
+{
+  int ret = 0;
+  g_slist_foreach (dataPtr, disconnect_impl, &ret);
+
+  if (ret != 0)
+  {
+    return ATMOTUBE_RET_ERROR;
+  }
+  else
+  {
+    return ATMOTUBE_RET_OK;
+  }
+}
+
+static void register_impl(gpointer data,
+                          gpointer user_data)
+{
+  AtmotubeData* d = (AtmotubeData*)data;
+  int* ud = (int*)user_data;
+  int ret = 0;
+
+  if (!d->connected)
+  {
+      *ud += 1;
+      PRINT_DEBUG("Unable to register, not connected to %s\n", d->deviceAddress);
+      d->connected = false;
+      return;
+  }
+
+  PRINT_DEBUG("Register notification\n");
+  gattlib_register_notification(d->connection, atmotube_handle_notification, d);
+  PRINT_DEBUG("Register notification done\n");
+
+  ret = 0;
+  ret += atmotube_notify_on_characteristic(d->connection, VOC);
+  ret += atmotube_notify_on_characteristic(d->connection, HUMIDITY);
+  ret += atmotube_notify_on_characteristic(d->connection, TEMPERATURE);
+  ret += atmotube_notify_on_characteristic(d->connection, STATUS);
+
+  if (ret != 0)
+  {
+    PRINT_DEBUG("atmotube_notify_on_characteristic failed for %s\n", d->deviceAddress);
+    gattlib_disconnect(d->connection);
+    d->connected = false;
+    *ud += 1;
+    return;
+  }
+}
+
+static void unregister_impl(gpointer data,
+                            gpointer user_data)
+{
+  // TODO: implement this.
+}
+
+int atmotube_register()
+{
+  int ret = 0;
+  g_slist_foreach (dataPtr, register_impl, &ret);
+
+  if (ret != 0)
+  {
+    return ATMOTUBE_RET_ERROR;
+  }
+  else
+  {
+    return ATMOTUBE_RET_OK;
+  }
+}
+
+int atmotube_unregister()
+{
+  int ret = 0;
+  g_slist_foreach (dataPtr, unregister_impl, &ret);
+
+  if (ret != 0)
+  {
+    return ATMOTUBE_RET_ERROR;
+  }
+  else
+  {
+    return ATMOTUBE_RET_OK;
+  }
 }
 
 uuid_t* atmotube_getuuid(enum CHARACTER_ID id)
 {
   return &UUIDS[id];
+}
+
+void atmotube_end()
+{
+  atmotube_disconnect();
 }

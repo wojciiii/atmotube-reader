@@ -64,6 +64,12 @@ int atmotube_add_device(char* deviceAddress, int resolution);
 // Connect to configured devices.
 int atmotube_connect();
 
+int atmotube_register();
+int atmotube_unregister();
+
+// Disconnect from configured devices.
+int atmotube_disconnect();
+
 void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
 
 int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
