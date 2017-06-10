@@ -24,13 +24,6 @@
 
 #include "atmotube.h"
 
-static int find_atmotube(int timeout, char** found_devices)
-{
-  /* TODO: implement this. */
-  atmotube_end();
-  return 1;
-}
-
 static GMainLoop *loop = NULL;
 
 void intHandler(int dummy)
@@ -46,30 +39,30 @@ void intHandler(int dummy)
 int main(int argc, char *argv[]) {
     int ret;
     gatt_connection_t* connection;
-  // TODO: remove hardcoded address.
+    // TODO: remove hardcoded address.
     const char* deviceAddress = "F7:35:49:55:35:E5";
 
-  atmotube_start();
+    atmotube_start();
     signal(SIGINT, intHandler);
     
-  printf("Connecting\n");
+    printf("Connecting\n");
 
     connection = gattlib_connect(NULL, deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
     if (connection == NULL)
     {
-      fprintf(stderr, "Fail to connect to the bluetooth device.\n");
-    atmotube_end();
-      return 1;
+        fprintf(stderr, "Fail to connect to the bluetooth device.\n");
+        atmotube_end();
+        return 1;
     }
 
     printf("Connected\n");
 
-  printf("Register notification\n");
-  gattlib_register_notification(connection, atmotube_handle_notification, NULL);
-  printf("Register notification done\n");
+    printf("Register notification\n");
+    gattlib_register_notification(connection, atmotube_handle_notification, NULL);
+    printf("Register notification done\n");
 
     ret = 0;
-  ret += atmotube_notify_on_characteristic(connection, VOC);
+    ret += atmotube_notify_on_characteristic(connection, VOC);
     ret += atmotube_notify_on_characteristic(connection, HUMIDITY);
     ret += atmotube_notify_on_characteristic(connection, TEMPERATURE);
     ret += atmotube_notify_on_characteristic(connection, STATUS);

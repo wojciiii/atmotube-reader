@@ -44,7 +44,17 @@ typedef struct
   bool registred;
 } AtmotubeData;
 
-GSList* dataPtr;
+typedef struct
+{
+  void* adapter;
+  char* search_name;
+
+  GSList* connectableDevices;
+  GSList* foundDevices;
+
+} AtmotubeGlData;
+
+static AtmotubeGlData glData;
 
 static char* CHARACTER_UUIDS[NUM_UUIDS] = {
   "db450002-8e9a-4818-add7-6ed94a328ab2",
@@ -59,6 +69,36 @@ static uint64_t getTimeStamp() {
     struct timeval tv;
     gettimeofday(&tv,NULL);
     return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+}
+
+static void init_gl_data(AtmotubeGlData *ptr)
+{
+  ptr->adapter = NULL;
+  ptr->search_name = NULL;
+  ptr->connectableDevices = NULL;
+  ptr->foundDevices = NULL;
+}
+
+void atmotube_start()
+{
+  int i;
+  int ret;
+
+  for (i = VOC; i < STATUS; i++)
+    {
+      ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
+    if (ret != 0)
+      {
+        PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
+        exit(1);
+      }
+    }
+
+    DEF_ATMOTUBE_NAME="ATMOTUBE";
+    DEF_ATMOTUBE_SEARCH_TIMEOUT = 4;
+
+    init_gl_data(&glData);
+ 
 }
 
 void atmotube_handle_voc(const uint8_t* data, size_t data_length)
@@ -169,37 +209,86 @@ int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID 
   return 0;
 }
 
-void atmotube_start()
+static void discovered_device(const char* addr, const char* name)
 {
-  int i;
-  int ret;
+  PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
 
-  for (i = VOC; i < STATUS; i++)
-    {
-      ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
-    if (ret != 0)
-      {
-        PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
-        exit(1);
-      }
-    }
-
-    dataPtr = NULL;
+  if (strcmp(name, glData.search_name) == 0)
+  {
+    char* temp = malloc(strlen(addr)+1);
+    strcpy(temp, addr);
+    glData.foundDevices = g_slist_append(glData.foundDevices, temp);
+    PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
+  }
+  else
+  {
+    PRINT_DEBUG("Found other device %s\n", name);
+  }
 }
 
-int atmotube_search()
+int atmotube_search(const char* name, int timeout)
 {
-  return ATMOTUBE_RET_ERROR;
+  int ret;
+
+  glData.search_name = malloc(strlen(name) + 1);
+  strcpy(glData.search_name, name);
+
+  // Using default adapter.
+  ret = gattlib_adapter_open(NULL, &glData.adapter);
+  if (ret)
+  {
+    PRINT_DEBUG("gattlib_adapter_open failed.\n");
+    return ATMOTUBE_RET_ERROR;
+  }
+
+  PRINT_DEBUG("Searching for %s, timeout=%d.\n", name, timeout);
+  
+  ret = gattlib_adapter_scan_enable(glData.adapter, discovered_device, timeout);
+  if (ret)
+  {
+    PRINT_DEBUG("gattlib_adapter_scan_enable failed.\n");
+    return ATMOTUBE_RET_ERROR;
+  }
+
+  gattlib_adapter_scan_disable(glData.adapter);
+  PRINT_DEBUG("Searching complete\n");
+  
+  gattlib_adapter_close(glData.adapter);
+
+  return ATMOTUBE_RET_OK;
 }
 
 int atmotube_num_found_devices()
 {
-  return 0;
+  return g_slist_length(glData.foundDevices);
 }
 
 char** atmotube_get_found_devices()
 {
-  return NULL;
+  int const size = atmotube_num_found_devices();
+  int buffSize = 0;
+  char** output = NULL;
+  char** ptr = output;
+  GSList *list = NULL;
+  int i;
+
+  if (size == 0)
+  {
+    return NULL;
+  }
+
+  output = malloc(size * sizeof(char*));
+  ptr = output;
+  for (i = 0; i < size; i++)
+  {
+    list = g_slist_nth (glData.foundDevices, i);
+    buffSize = strlen(list->data) + 1;
+    *ptr = malloc(buffSize);
+    strcpy(*ptr, list->data);
+    ptr++;
+  }
+
+  return output;
 }
 
 int atmotube_add_device(char* deviceAddress, int resolution)
@@ -223,7 +312,7 @@ int atmotube_add_device(char* deviceAddress, int resolution)
   d->connected  = 0;
   d->registred  = 0;
 
-  dataPtr = g_slist_append(dataPtr, d);
+  glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
 
   return ATMOTUBE_RET_OK;
 }
@@ -274,7 +363,7 @@ static void disconnect_impl(gpointer data,
 int atmotube_connect()
 {
   int ret = 0;
-  g_slist_foreach (dataPtr, connect_impl, &ret);
+  g_slist_foreach (glData.connectableDevices, connect_impl, &ret);
 
   if (ret != 0)
   {
@@ -289,7 +378,7 @@ int atmotube_connect()
 int atmotube_disconnect()
 {
   int ret = 0;
-  g_slist_foreach (dataPtr, disconnect_impl, &ret);
+  g_slist_foreach (glData.connectableDevices, disconnect_impl, &ret);
 
   if (ret != 0)
   {
@@ -345,7 +434,7 @@ static void unregister_impl(gpointer data,
 int atmotube_register()
 {
   int ret = 0;
-  g_slist_foreach (dataPtr, register_impl, &ret);
+  g_slist_foreach (glData.connectableDevices, register_impl, &ret);
 
   if (ret != 0)
   {
@@ -360,7 +449,7 @@ int atmotube_register()
 int atmotube_unregister()
 {
   int ret = 0;
-  g_slist_foreach (dataPtr, unregister_impl, &ret);
+  g_slist_foreach (glData.connectableDevices, unregister_impl, &ret);
 
   if (ret != 0)
   {
