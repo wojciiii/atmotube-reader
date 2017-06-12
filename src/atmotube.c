@@ -14,7 +14,6 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "atmotube.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
@@ -22,21 +21,16 @@
 #include <glib.h>
 #include <stdbool.h>
 
+#include "atmotube.h"
+#include "atmotube-config.h"
+
 #define NUM_UUIDS 4
-
-#ifndef DEBUG
-#define DEBUG 1
-#endif
-
-#if (DEBUG)
-#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#else
-#  define PRINT_DEBUG(fmt, ...)
-#endif
 
 typedef struct
 {
+  char* name;
   char* deviceAddress;
+  char* description;
   gatt_connection_t* connection;
   int resolution;
 
@@ -291,22 +285,35 @@ char** atmotube_get_found_devices()
   return output;
 }
 
-int atmotube_add_device(char* deviceAddress, int resolution)
+int atmotube_add_device_from_config(char* fullName)
+{
+  atmotube_config_start(fullName);
+
+  int ret = atmotube_config_load(atmotube_add_device);
+
+  atmotube_config_end();
+
+  return ret;
+}
+
+int atmotube_add_device(char* name, char* deviceAddress, char* description, int resolution)
 {
   if (resolution < ATMOTUBE_MIN_RESOUTION)
   {
-    PRINT_DEBUG("Resulution is invalid(%d < %d)\n", resolution, ATMOTUBE_MIN_RESOUTION);
+    PRINT_DEBUG("Resolution is invalid(%d < %d)\n", resolution, ATMOTUBE_MIN_RESOUTION);
     return ATMOTUBE_RET_ERROR;
   }
 
   if (resolution > ATMOTUBE_MAX_RESOUTION)
   {
-    PRINT_DEBUG("Resulution is invalid(%d > %d)\n", resolution, ATMOTUBE_MAX_RESOUTION);
+    PRINT_DEBUG("Resolution is invalid(%d > %d)\n", resolution, ATMOTUBE_MAX_RESOUTION);
     return ATMOTUBE_RET_ERROR;
   }
 
   AtmotubeData* d = (AtmotubeData*)malloc(sizeof(AtmotubeData));
+  d->name = name;
   d->deviceAddress = deviceAddress;
+  d->description = description;
   d->connection = NULL;
   d->resolution = resolution;
   d->connected  = 0;

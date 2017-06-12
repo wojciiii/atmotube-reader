@@ -19,16 +19,7 @@
 #include <check.h>
 
 #include <atmotube.h>
-
-/*
-START_TEST (test_name)
-{
-    printf("test_name\n");
-    //ck_assert(1==0);
-    ck_assert(1==1);
-}
-END_TEST
-*/
+#include <atmotube-config.h>
 
 void test_handle_notification(enum CHARACTER_ID id, uint8_t* data, size_t data_length)
 {
@@ -76,6 +67,24 @@ START_TEST (test_handle_STATUS_notification)
 }
 END_TEST
 
+static int dummy(char* name, char* deviceAddress, char* description, int resolution)
+{
+    return 0;
+}
+
+START_TEST (test_load_config)
+{
+    char* fullName = "../test/config.txt";
+    atmotube_config_start(fullName);
+
+    int ret = atmotube_config_load(dummy);
+    if (ret == 0)
+    {
+        atmotube_config_end();
+    }
+}
+END_TEST
+
 Suite* atmreader_suite(void)
 {
     Suite *s;
@@ -90,6 +99,7 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
     tcase_add_test(tc_core, test_handle_STATUS_notification);
+    tcase_add_test(tc_core, test_load_config);
     //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 

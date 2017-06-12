@@ -3,6 +3,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GATTLIB REQUIRED gattlib)
 
 include(FindCheck.cmake)
+include(FindLibConfuse.cmake)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused-function")
 
@@ -16,15 +17,3 @@ add_subdirectory (src)
 
 enable_testing()
 add_subdirectory (test)
-
-#set(ble_scan_SRCS ble_scan.c)
-#set(atmotube_reader_SRCS atmotube-reader.c)
-
-#include_directories(${GATTLIB_INCLUDE_DIRS})
-#link_directories(${GATTLIB_LIBDIR})
-
-#add_executable(ble_scan ${ble_scan_SRCS})
-#target_link_libraries(ble_scan ${GATTLIB_LIBRARIES} pthread)
-
-#add_executable(atmreader ${atmotube_reader_SRCS})
-#target_link_libraries(atmreader ${GATTLIB_LIBRARIES} pthread)

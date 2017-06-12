@@ -9,4 +9,10 @@ of my testing environment.
 # Dependencies
 
 - CMake for building.
+- LibConfuse for configuration files.
 - GattLib for accessing BLE devices.
+
+# Configuration
+
+Example file: test/config.txt
+The application uses: ~/.atmotube/config.

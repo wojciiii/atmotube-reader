@@ -18,6 +18,7 @@
 #define ATMOTUBE_H
 
 #include <gattlib.h>
+#include "atmotube_common.h"
 
 enum CHARACTER_ID
 {
@@ -31,9 +32,6 @@ enum CHARACTER_ID
 #define ATMOTUBE_MIN_RESOUTION 100     /* ms */
 #define ATMOTUBE_MAX_RESOUTION 60*1000 /* ms */
 #define ATMOTUBE_DEF_RESOUTION 1000    /* ms */
-
-#define ATMOTUBE_RET_OK 0
-#define ATMOTUBE_RET_ERROR 1
 
 struct stored
 {
@@ -61,8 +59,11 @@ int atmotube_num_found_devices();
 // Get list of found devices.
 char** atmotube_get_found_devices();
 
+// Read devices from a config file.
+int atmotube_add_devices_from_config(char* fullName);
+
 // Add a device to the list of connectable Atmotube devices.
-int atmotube_add_device(char* deviceAddress, int resolution);
+int atmotube_add_device(char* name, char* deviceAddress, char* description, int resolution);
 
 // Connect to configured devices.
 int atmotube_connect();
