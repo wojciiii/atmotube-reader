@@ -75,14 +75,10 @@ void atmotube_config_start(char* fullName)
 	{
 		struct passwd *pw = getpwuid(getuid());
 		const char *homedir = pw->pw_dir;
+		const char *filename = ".atmotube/config";
 
-		const char *filename = "/.atmotube/config";
-		int size = strlen(homedir)+strlen(filename)+1;
-
-		configFilename = malloc(size);
-		memset(configFilename, 0, size);
-		memcpy(configFilename, homedir, strlen(homedir));
-		memcpy(configFilename+strlen(filename), filename, strlen(filename));
+		configFilename = malloc(snprintf(NULL, 0, "%s/%s", homedir, filename) + 1);
+		sprintf(configFilename, "%s/%s", homedir, filename);
 	}
 
 	PRINT_DEBUG("Using config file: %s\n", configFilename);
@@ -105,7 +101,7 @@ int atmotube_config_load(int (*fp)(char* name, char* deviceAddress, char* descri
 
 	numDevices = cfg_size(cfg, "device");
 
-	PRINT_DEBUG("Load: %d devices present\n", numDevices);
+	PRINT_DEBUG("Load: %d device(s) present\n", numDevices);
 
 	for (i = 0; i < numDevices; i++)
 	{
@@ -116,12 +112,13 @@ int atmotube_config_load(int (*fp)(char* name, char* deviceAddress, char* descri
 		PRINT_DEBUG("  description = %s\n", cfg_getstr(device, "description"));
 		PRINT_DEBUG("  resolution = %ld\n", cfg_getint(device, "resolution"));
 
-		fp(
+		ret = fp(
 			cfg_getstr(device, "name"),
 			cfg_getstr(device, "address"),
 			cfg_getstr(device, "description"),
 			cfg_getint(device, "resolution")
 		);
+		PRINT_DEBUG("Added device, ret = %d\n", ret);
 	}
 
 	cfg_free(cfg);

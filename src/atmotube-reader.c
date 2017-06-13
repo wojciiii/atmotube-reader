@@ -38,13 +38,37 @@ void intHandler(int dummy)
 
 int main(int argc, char *argv[]) {
     int ret;
-    gatt_connection_t* connection;
-    // TODO: remove hardcoded address.
-    const char* deviceAddress = "F7:35:49:55:35:E5";
 
     atmotube_start();
     signal(SIGINT, intHandler);
     
+    ret = atmotube_add_devices_from_config(NULL);
+
+    ret = atmotube_connect();
+    if (ret != ATMOTUBE_RET_OK)
+    {
+        atmotube_end();
+        return 0;
+    }
+
+    ret = atmotube_register();
+    if (ret != ATMOTUBE_RET_OK)
+    {
+        atmotube_disconnect();
+        atmotube_end();
+    }
+
+    loop = g_main_loop_new(NULL, 0);
+    g_main_loop_run(loop);
+    g_main_loop_unref(loop);
+
+    atmotube_unregister();
+    atmotube_disconnect();
+    atmotube_end();
+
+    return 0;
+
+/*
     printf("Connecting\n");
 
     connection = gattlib_connect(NULL, deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
@@ -70,7 +94,7 @@ int main(int argc, char *argv[]) {
     if (ret != 0)
     {
       gattlib_disconnect(connection);
-    atmotube_end();
+      atmotube_end();
       return 1;
     }
 
@@ -92,4 +116,5 @@ int main(int argc, char *argv[]) {
 
   atmotube_end();
     return 0;
+    */
 }

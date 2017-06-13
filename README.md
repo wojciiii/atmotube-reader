@@ -15,4 +15,5 @@ of my testing environment.
 # Configuration
 
 Example file: test/config.txt
+
 The application uses: ~/.atmotube/config.

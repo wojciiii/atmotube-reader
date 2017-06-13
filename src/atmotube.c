@@ -123,7 +123,7 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
   enum CHARACTER_ID id = CHARACTER_MAX;
   AtmotubeData* d = (AtmotubeData*)user_data;
 
-  PRINT_DEBUG("Notification Handler: \n");
+  PRINT_DEBUG("Notification Handler for %s:\n", d->deviceAddress);
 
   for (i = VOC; i < CHARACTER_MAX; i++)
   {
@@ -285,7 +285,7 @@ char** atmotube_get_found_devices()
   return output;
 }
 
-int atmotube_add_device_from_config(char* fullName)
+int atmotube_add_devices_from_config(char* fullName)
 {
   atmotube_config_start(fullName);
 
@@ -294,6 +294,11 @@ int atmotube_add_device_from_config(char* fullName)
   atmotube_config_end();
 
   return ret;
+}
+
+static void dumpAtmotubeData(AtmotubeData* d)
+{
+  PRINT_DEBUG("d->deviceAddress = %s\n", d->deviceAddress);
 }
 
 int atmotube_add_device(char* name, char* deviceAddress, char* description, int resolution)
@@ -312,12 +317,14 @@ int atmotube_add_device(char* name, char* deviceAddress, char* description, int 
 
   AtmotubeData* d = (AtmotubeData*)malloc(sizeof(AtmotubeData));
   d->name = name;
-  d->deviceAddress = deviceAddress;
-  d->description = description;
+  d->deviceAddress = strdup(deviceAddress);
+  d->description = strdup(description);
   d->connection = NULL;
   d->resolution = resolution;
   d->connected  = 0;
   d->registred  = 0;
+
+  dumpAtmotubeData(d);
 
   glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
 
@@ -354,15 +361,18 @@ static void disconnect_impl(gpointer data,
 
   if (d->connected)
   {
-    if (gattlib_disconnect(d->connection) != 0)
+    PRINT_DEBUG("Disconnecting %s\n", d->deviceAddress);
+
+    if (gattlib_disconnect(d->connection) == 0)
     {
-      *ret += 1;
-      PRINT_DEBUG("gattlib_disconnect failed\n");
+      PRINT_DEBUG("Disconnected from %s\n", d->deviceAddress);
       d->connected = false;
     }
     else
     {
-     PRINT_DEBUG("Disconnected from %s\n", d->deviceAddress);
+      PRINT_DEBUG("gattlib_disconnect failed\n");
+     *ret += 1;
+     d->connected = false;
     }
   }
 }
