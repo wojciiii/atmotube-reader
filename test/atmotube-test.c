@@ -20,11 +20,22 @@
 
 #include <atmotube.h>
 #include <atmotube-config.h>
+#include <interval.h>
+#include <unistd.h>
+
+typedef struct
+{
+    // ..
+    char* deviceAddress;
+    // ..
+} AtmotubeData;
 
 void test_handle_notification(enum CHARACTER_ID id, uint8_t* data, size_t data_length)
 {
     uuid_t* uuid = atmotube_getuuid(id);
-    void* user_data = NULL;
+    AtmotubeData d;
+    d.deviceAddress = "00:00:00:00:00";
+    void* user_data = &d;
 
     atmotube_handle_notification(uuid, data, data_length, user_data);
 }
@@ -85,6 +96,33 @@ START_TEST (test_load_config)
 }
 END_TEST
 
+START_TEST (test_interval)
+{
+    int i;
+    const char* TEST1 = "test1";
+    const char* TEST2 = "test1";
+
+    // LABEL, TYPE
+    interval_define(TEST1, "%ld");
+    interval_define(TEST2, "%f");
+
+    unsigned int t1 = 1000;
+    unsigned int f1 = 0.52f;
+
+    // 5 Seconds.
+    interval_start(5000);
+
+    for (i = 0; i < 10; i++)
+    {
+        interval_log(TEST1, &t1);
+        interval_log(TEST2, &f1);
+        usleep(100*1000);
+    }
+
+    interval_stop();
+}
+END_TEST
+
 Suite* atmreader_suite(void)
 {
     Suite *s;
@@ -100,6 +138,9 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
     tcase_add_test(tc_core, test_handle_STATUS_notification);
     tcase_add_test(tc_core, test_load_config);
+
+    tcase_add_test(tc_core, test_interval);
+
     //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 

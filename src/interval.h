@@ -14,21 +14,15 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ATMOTUBE_COMMON_H
-#define ATMOTUBE_COMMON_H
+#ifndef INTERVAL_H
+#define INTERVAL_H
 
-#define ATMOTUBE_RET_OK 0
-#define ATMOTUBE_RET_ERROR 1
+int interval_define(const char *label, const char *fmt);
 
-#ifndef DEBUG
-#define DEBUG 1
-#endif
+int interval_start(unsigned long interval_ms);
 
-#if (DEBUG)
-#include <stdio.h>
-#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#else
-#  define PRINT_DEBUG(fmt, ...)
-#endif
+void interval_log(const char *label, void* p);
 
-#endif /* ATMOTUBE_COMMON_H */
+int interval_stop();
+
+#endif /* INTERVAL_H */
