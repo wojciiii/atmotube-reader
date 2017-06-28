@@ -21,7 +21,7 @@ int interval_define(const char *label, const char *fmt);
 
 int interval_start(unsigned long interval_ms);
 
-void interval_log(const char *label, void* p);
+void interval_log(const char *label, const char *fmt, ...);
 
 int interval_stop();
 

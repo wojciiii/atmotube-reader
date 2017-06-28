@@ -100,22 +100,22 @@ START_TEST (test_interval)
 {
     int i;
     const char* TEST1 = "test1";
-    const char* TEST2 = "test1";
+    const char* TEST2 = "test2";
 
     // LABEL, TYPE
     interval_define(TEST1, "%ld");
-    interval_define(TEST2, "%f");
+    interval_define(TEST2, "%d");
 
     unsigned int t1 = 1000;
     unsigned int f1 = 0.52f;
 
     // 5 Seconds.
-    interval_start(5000);
+    interval_start(1000);
 
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 250; i++)
     {
-        interval_log(TEST1, &t1);
-        interval_log(TEST2, &f1);
+        interval_log(TEST1, "%ld", t1);
+        interval_log(TEST2, "%f", f1);
         usleep(100*1000);
     }
 
