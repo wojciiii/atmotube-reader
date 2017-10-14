@@ -96,30 +96,57 @@ START_TEST (test_load_config)
 }
 END_TEST
 
+void callback_ulong(unsigned long ts, unsigned long value)
+{
+    printf("Time: %lu, value=%lu\n", ts, value);
+}
+
+void callback_float(unsigned long ts, float value)
+{
+    printf("Time: %lu, value=%f\n", ts, value);
+}
+
 START_TEST (test_interval)
 {
     int i;
     const char* TEST1 = "test1";
     const char* TEST2 = "test2";
-
+    const char* TEST3 = "test3";
+    
     // LABEL, TYPE
-    interval_define(TEST1, "%ld");
-    interval_define(TEST2, "%d");
+    interval_add(TEST1, INTERVAL_ULONG);
+    interval_add(TEST2, INTERVAL_FLOAT);
+    interval_add(TEST3, INTERVAL_ULONG);
+
+    interval_add_ulong_callback(TEST1, INTERVAL_ULONG, callback_ulong);
+    interval_add_float_callback(TEST2, INTERVAL_FLOAT, callback_float);
+    interval_add_ulong_callback(TEST3, INTERVAL_ULONG, callback_ulong);
+ 
+    //interval_dump();
 
     unsigned int t1 = 1000;
-    unsigned int f1 = 0.52f;
+    double f1 = 0.52f;
+    unsigned int t3 = 2000;
+    
+    interval_start(TEST1, INTERVAL_ULONG, 1000);
+    interval_start(TEST2, INTERVAL_FLOAT, 550);
+    interval_start(TEST3, INTERVAL_ULONG, 500);
 
-    // 5 Seconds.
-    interval_start(1000);
-
-    for (i = 0; i < 250; i++)
+    for (i = 0; i < 21; i++)
     {
-        interval_log(TEST1, "%ld", t1);
-        interval_log(TEST2, "%f", f1);
+        interval_log(TEST1, INTERVAL_ULONG, t1);
+	interval_log(TEST2, INTERVAL_FLOAT, f1);
+	interval_log(TEST3, INTERVAL_ULONG, t3);
         usleep(100*1000);
     }
 
-    interval_stop();
+    interval_stop(TEST1, INTERVAL_ULONG);
+    interval_stop(TEST2, INTERVAL_FLOAT);
+    interval_stop(TEST3, INTERVAL_ULONG);
+
+    interval_remove(TEST1, INTERVAL_ULONG);
+    interval_remove(TEST2, INTERVAL_FLOAT);
+    interval_remove(TEST3, INTERVAL_ULONG);
 }
 END_TEST
 
@@ -132,13 +159,13 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
-
+    /*
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
     tcase_add_test(tc_core, test_handle_STATUS_notification);
     tcase_add_test(tc_core, test_load_config);
-
+    */
     tcase_add_test(tc_core, test_interval);
 
     //tcase_add_test(tc_core, test_name);

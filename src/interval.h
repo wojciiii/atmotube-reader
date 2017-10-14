@@ -17,12 +17,31 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
-int interval_define(const char *label, const char *fmt);
+/* Supported intervals. */
+#define INTERVAL_ULONG "%lu"
+#define INTERVAL_FLOAT "%f"
 
-int interval_start(unsigned long interval_ms);
+/* Define an interval described by a label and a format. */
+int interval_add(const char *label, const char *fmt);
 
+typedef void (*ulong_callback)(unsigned long, unsigned long);
+typedef void (*float_callback)(unsigned long, float);
+
+int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback);
+int interval_add_float_callback(const char *label, const char *fmt, float_callback callback);
+
+/* Remove a previously defined interval. */
+int interval_remove(const char *label, const char *fmt);
+
+/* Start a previously defined interval. */
+int interval_start(const char *label, const char *fmt, unsigned long interval_ms);
+/* Start a previously started interval. */
+int interval_stop(const char *label, const char *fmt);
+
+/* Log some data using a previously defined interval. */
 void interval_log(const char *label, const char *fmt, ...);
 
-int interval_stop();
+/* Print the defined intervals. */
+void interval_dump(void);
 
 #endif /* INTERVAL_H */
