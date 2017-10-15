@@ -340,6 +340,7 @@ static void connect_impl(gpointer data,
   PRINT_DEBUG("Connecting to %s\n", d->deviceAddress);
 
   d->connection = gattlib_connect(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
+  //d->connection = gattlib_connect_timeout(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0, 5);
   if (d->connection == NULL)
   {
     PRINT_DEBUG("Failed to connect to the bluetooth device.\n");
