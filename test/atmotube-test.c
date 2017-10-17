@@ -45,36 +45,36 @@ START_TEST (test_handle_VOC_notification)
     //uint8_t data[] = {0x01, 0xb9};
     uint8_t data[] = {0x02, 0x94};
     size_t data_length = sizeof(data);
-
     test_handle_notification(VOC, &data[0], data_length);
 }
 END_TEST
 
 START_TEST (test_handle_HUMIDITY_notification)
 {
-    uint8_t data[] = {0x26};
+    uint8_t data[] = {0x1e};
     size_t data_length = sizeof(data);
-
     test_handle_notification(HUMIDITY, &data[0], data_length);
 }
 END_TEST
 
 START_TEST (test_handle_TEMPERATURE_notification)
 {
-    uint8_t data[] = {0x20};
+    uint8_t data[] = {0x1c};
     size_t data_length = sizeof(data);
-
     test_handle_notification(TEMPERATURE, &data[0], data_length);
 }
 END_TEST
 
 START_TEST (test_handle_STATUS_notification)
 {
-    // TODO: test this
     uint8_t data[] = {0x41};
     size_t data_length = sizeof(data);
-
     test_handle_notification(STATUS, &data[0], data_length);
+
+    /* 100 % charged */
+    uint8_t data2[] = {0x5C};
+    data_length = sizeof(data2);
+    test_handle_notification(STATUS, &data2[0], data_length);
 }
 END_TEST
 
@@ -159,15 +159,16 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
-    /*
+
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
     tcase_add_test(tc_core, test_handle_STATUS_notification);
+    /*
     tcase_add_test(tc_core, test_load_config);
-    */
-    tcase_add_test(tc_core, test_interval);
 
+    tcase_add_test(tc_core, test_interval);
+    */
     //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 

@@ -95,26 +95,86 @@ void atmotube_start()
  
 }
 
-void atmotube_handle_voc(const uint8_t* data, size_t data_length)
+static void atmotube_handle_voc(const uint8_t* data, size_t data_length)
 {
-  uint16_t voc_input = *(data+1) | ((uint16_t)*(data)) << 8;
-  double voc = voc_input / 100.0f;
-  PRINT_DEBUG("handle_voc: %ld, %f\n", voc_input, voc);
+    if ((data_length) < 2) {
+	PRINT_DEBUG("handle_voc: no data\n");
+	return;
+    }
+
+    uint16_t voc_input = *(data+1) | ((uint16_t)*(data)) << 8;
+    double voc = voc_input / 100.0f;
+    PRINT_DEBUG("handle_voc: 0x%x, %f\n", voc_input, voc);
 }
 
-void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
+static void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
 {
+    if ((data_length) < 1) {
+	PRINT_DEBUG("handle_humidity: no data\n");
+	return;
+    }
 
+    uint16_t humidity = data[0] & 0xFF;
+    PRINT_DEBUG("handle_humidity: 0x%x, %d%%\n", data[0], humidity);
 }
 
-void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
+static void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
 {
+    if ((data_length) < 1) {
+	PRINT_DEBUG("handle_temperature: no data\n");
+	return;
+    }
 
+    uint16_t temperature = data[0] & 0xFF;
+    PRINT_DEBUG("handle_temperature: 0x%x, %d C\n", data[0], temperature);
 }
 
-void atmotube_handle_status(const uint8_t* data, size_t data_length)
+static void atmotube_handle_status(const uint8_t* data, size_t data_length)
 {
+    if ((data_length) < 1) {
+	PRINT_DEBUG("handle_status: no data\n");
+	return;
+    }
 
+    /* ASDFGHJK                                          */
+    /* A  (1b)  - 0 -> 3 sec, 1 -> 30 sec.               */
+    /* S  (1b)  - 0 -> calibrating, 1 -> ready.          */
+    /* DF (2b)  - reserved.                              */
+    /* G  (1b)  - 0 -> not charging, 1 -> charging.      */
+    /* HJK (3b) - battery charging level, 25% incremets. */
+
+    uint8_t first_bit_mask = 0x1;
+    uint8_t mode_offset  = 8;
+    uint8_t calib_offset = 7;
+    uint8_t battery_mask = 0x7;
+    uint8_t charging_offset = 3;
+
+    bool mode = (data[0] >> mode_offset) & first_bit_mask;
+    bool calibrating = (data[0] >> calib_offset) & first_bit_mask;
+    uint8_t battery_percent = (data[0] & battery_mask) * 25;
+    bool charging = (data[0] >> charging_offset) & first_bit_mask;
+
+    printf("Status:\n");
+
+    if (mode) {
+	printf("\tmode: slow\n");
+    } else {
+	printf("\tmode: fast\n");
+    }
+
+    if (calibrating) {
+	printf("\tdev: calibrating\n");
+    } else {
+	printf("\tdev: ready\n");
+    }
+
+    if (charging) {
+	printf("\tpower: charging\n");
+    } else {
+	printf("\tpower: not charging\n");
+    }
+
+    printf("\tbattery: %u%%\n", battery_percent);
 }
 
 void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data)
@@ -428,10 +488,18 @@ static void register_impl(gpointer data,
   PRINT_DEBUG("Register notification done\n");
 
   ret = 0;
+
+  uint8_t character_id;
+  for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
+      PRINT_DEBUG("Notify on: %u\n", character_id);
+      ret += atmotube_notify_on_characteristic(d->connection, character_id);
+  }
+  /*
   ret += atmotube_notify_on_characteristic(d->connection, VOC);
   ret += atmotube_notify_on_characteristic(d->connection, HUMIDITY);
   ret += atmotube_notify_on_characteristic(d->connection, TEMPERATURE);
   ret += atmotube_notify_on_characteristic(d->connection, STATUS);
+  */
 
   if (ret != 0)
   {
@@ -446,7 +514,15 @@ static void register_impl(gpointer data,
 static void unregister_impl(gpointer data,
                             gpointer user_data)
 {
-  // TODO: implement this.
+    AtmotubeData* d = (AtmotubeData*)data;
+    int* ud = (int*)user_data;
+    int ret = 0;
+
+    uint8_t character_id;
+    for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
+	PRINT_DEBUG("Stop notify on: %u\n", character_id);
+	ret += atmotube_stop_notification(d->connection, character_id);
+    }
 }
 
 int atmotube_register()

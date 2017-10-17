@@ -78,11 +78,12 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
 
 int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
 int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id);
-
+/*
 void atmotube_handle_voc(const uint8_t* data, size_t data_length);
 void atmotube_handle_humidity(const uint8_t* data, size_t data_length);
 void atmotube_handle_temperature(const uint8_t* data, size_t data_length);
 void atmotube_handle_status(const uint8_t* data, size_t data_length);
+*/
 
 uuid_t* atmotube_getuuid(enum CHARACTER_ID id);
 
