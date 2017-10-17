@@ -21,6 +21,8 @@
 #define INTERVAL_ULONG "%lu"
 #define INTERVAL_FLOAT "%f"
 
+#define INTERVAL_SEC_TO_MS(x) (1000*x)
+
 /* Define an interval described by a label and a format. */
 int interval_add(const char *label, const char *fmt);
 
@@ -30,7 +32,7 @@ typedef void (*float_callback)(unsigned long, float);
 int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback);
 int interval_add_float_callback(const char *label, const char *fmt, float_callback callback);
 
-/* Remove a previously defined interval. */
+/* Remove a previously added interval. */
 int interval_remove(const char *label, const char *fmt);
 
 /* Start a previously defined interval. */

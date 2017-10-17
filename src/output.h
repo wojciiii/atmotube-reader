@@ -14,23 +14,12 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ATMOTUBE_COMMON_H
-#define ATMOTUBE_COMMON_H
+#ifndef OUTPUT_H
+#define OUTPUT_H
 
-#define ATMOTUBE_RET_OK 0
-#define ATMOTUBE_RET_ERROR 1
+void output_temperature(unsigned long ts, unsigned long value);
+void output_humidity(unsigned long ts, unsigned long value);
+void output_voc(unsigned long ts, float value);
 
-#ifndef DEBUG
-#define DEBUG 1
-#endif
+#endif /* OUTPUT_H */
 
-#if (DEBUG)
-#include <stdio.h>
-#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#else
-#  define PRINT_DEBUG(fmt, ...)
-#endif
-
-#define UNUSED(x) (void)(x)
-
-#endif /* ATMOTUBE_COMMON_H */

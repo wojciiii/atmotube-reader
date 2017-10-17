@@ -23,6 +23,8 @@
 
 #include "atmotube.h"
 #include "atmotube-config.h"
+#include "interval.h"
+#include "output.h"
 
 #define NUM_UUIDS 4
 
@@ -58,6 +60,10 @@ static char* CHARACTER_UUIDS[NUM_UUIDS] = {
 };
 
 static uuid_t UUIDS[NUM_UUIDS] = { CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0) };
+
+static const char *intervalnames[] = {"VOC", "HUMIDITY", "TEMPERATURE", "STATUS"};
+
+static const char *fmts[] = {INTERVAL_FLOAT, INTERVAL_ULONG, INTERVAL_ULONG, ""};
 
 static uint64_t getTimeStamp() {
     struct timeval tv;
@@ -105,6 +111,8 @@ static void atmotube_handle_voc(const uint8_t* data, size_t data_length)
     uint16_t voc_input = *(data+1) | ((uint16_t)*(data)) << 8;
     double voc = voc_input / 100.0f;
     PRINT_DEBUG("handle_voc: 0x%x, %f\n", voc_input, voc);
+
+    interval_log(intervalnames[VOC], fmts[VOC], voc);
 }
 
 static void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
@@ -116,6 +124,7 @@ static void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
 
     uint16_t humidity = data[0] & 0xFF;
     PRINT_DEBUG("handle_humidity: 0x%x, %d%%\n", data[0], humidity);
+    interval_log(intervalnames[HUMIDITY], fmts[HUMIDITY], humidity);
 }
 
 static void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
@@ -127,6 +136,7 @@ static void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
 
     uint16_t temperature = data[0] & 0xFF;
     PRINT_DEBUG("handle_temperature: 0x%x, %d C\n", data[0], temperature);
+    interval_log(intervalnames[TEMPERATURE], fmts[TEMPERATURE], temperature);
 }
 
 static void atmotube_handle_status(const uint8_t* data, size_t data_length)
@@ -143,11 +153,11 @@ static void atmotube_handle_status(const uint8_t* data, size_t data_length)
     /* G  (1b)  - 0 -> not charging, 1 -> charging.      */
     /* HJK (3b) - battery charging level, 25% incremets. */
 
-    uint8_t first_bit_mask = 0x1;
-    uint8_t mode_offset  = 8;
-    uint8_t calib_offset = 7;
-    uint8_t battery_mask = 0x7;
-    uint8_t charging_offset = 3;
+    const uint8_t first_bit_mask = 0x1;
+    const uint8_t mode_offset  = 8;
+    const uint8_t calib_offset = 7;
+    const uint8_t battery_mask = 0x7;
+    const uint8_t charging_offset = 3;
 
     bool mode = (data[0] >> mode_offset) & first_bit_mask;
     bool calibrating = (data[0] >> calib_offset) & first_bit_mask;
@@ -398,7 +408,8 @@ static void connect_impl(gpointer data,
   int* ret = (int*)user_data;
 
   PRINT_DEBUG("Connecting to %s\n", d->deviceAddress);
-
+  PRINT_DEBUG("Using resolution: %d\n", d->resolution);
+  
   d->connection = gattlib_connect(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
   //d->connection = gattlib_connect_timeout(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0, 5);
   if (d->connection == NULL)
@@ -487,19 +498,40 @@ static void register_impl(gpointer data,
   gattlib_register_notification(d->connection, atmotube_handle_notification, d);
   PRINT_DEBUG("Register notification done\n");
 
+  /* Add intervals. */
+  PRINT_DEBUG("Adding intervals\n");
+  uint8_t character_id;
+  uint16_t interval = INTERVAL_SEC_TO_MS(d->resolution);
+  for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
+      const char* label = intervalnames[character_id];
+      const char* fmt = fmts[character_id];
+      if (strlen(fmt) > 0) {
+	  PRINT_DEBUG("Adding interval: %s:%s\n", label, fmt);
+	  interval_add(label, fmt);
+	  interval_start(label, fmt, interval);
+
+	  switch (character_id) {
+	  case VOC:
+	      interval_add_float_callback(label, fmt, output_voc);
+	      break;
+	  case HUMIDITY:
+	      interval_add_ulong_callback(label, fmt, output_humidity);
+	      break;
+	  case TEMPERATURE:
+	      interval_add_ulong_callback(label, fmt, output_temperature);
+	      break;
+	  case STATUS:
+	      break;
+	  }
+      }
+  }
+
   ret = 0;
 
-  uint8_t character_id;
   for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
       PRINT_DEBUG("Notify on: %u\n", character_id);
       ret += atmotube_notify_on_characteristic(d->connection, character_id);
   }
-  /*
-  ret += atmotube_notify_on_characteristic(d->connection, VOC);
-  ret += atmotube_notify_on_characteristic(d->connection, HUMIDITY);
-  ret += atmotube_notify_on_characteristic(d->connection, TEMPERATURE);
-  ret += atmotube_notify_on_characteristic(d->connection, STATUS);
-  */
 
   if (ret != 0)
   {
@@ -515,7 +547,8 @@ static void unregister_impl(gpointer data,
                             gpointer user_data)
 {
     AtmotubeData* d = (AtmotubeData*)data;
-    int* ud = (int*)user_data;
+    UNUSED(user_data);
+    /*int* ud = (int*)user_data;*/
     int ret = 0;
 
     uint8_t character_id;

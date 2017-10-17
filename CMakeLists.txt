@@ -5,7 +5,7 @@ pkg_check_modules(GATTLIB REQUIRED gattlib)
 include(FindCheck.cmake)
 include(FindLibConfuse.cmake)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused-function")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused -Wunused-function -Wunused-label -Wunused-parameter -Wunused-value -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable")
 
 if (CHECK_FOUND)
   message(STATUS "Found check")
