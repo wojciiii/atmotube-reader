@@ -32,6 +32,8 @@ typedef void (*float_callback)(unsigned long, float);
 int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback);
 int interval_add_float_callback(const char *label, const char *fmt, float_callback callback);
 
+int interval_remove_callbacks(const char *label, const char *fmt);
+
 /* Remove a previously added interval. */
 int interval_remove(const char *label, const char *fmt);
 

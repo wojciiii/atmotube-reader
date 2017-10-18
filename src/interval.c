@@ -17,10 +17,15 @@ typedef union
     double d;
 } IntervalData;
 
-typedef union
+typedef struct
 {
-    ulong_callback ulong_cb;
-    float_callback float_cb;
+    bool callback_set;
+    union
+    {
+	ulong_callback ulong_cb;
+	float_callback float_cb;
+    } u;
+
 } Callback;
 
 typedef struct
@@ -99,13 +104,31 @@ int interval_add(const char *label, const char *fmt)
     return status;
 }
 
+int interval_remove_callbacks(const char *label, const char *fmt)
+{
+    Interval* found  = NULL;
+    find_in_list(found, label, fmt);
+
+    if (found != NULL) {
+	found->callback.callback_set = false;
+	found->callback.u.ulong_cb = NULL;
+	found->callback.u.float_cb = NULL;
+    }
+    else {
+	PRINT_DEBUG("Interval %s:%s not found\n", label, fmt);
+    }
+
+    return ATMOTUBE_RET_ERROR;
+}
+
 int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback)
 {
     Interval* found  = NULL;
     find_in_list(found, label, fmt);
 
     if (found != NULL) {
-	found->callback.ulong_cb = callback;
+	found->callback.u.ulong_cb = callback;
+	found->callback.callback_set = true;
 	PRINT_DEBUG("Interval %s:%s added ulong cb\n", label, fmt);
 	return ATMOTUBE_RET_OK;
     }
@@ -122,7 +145,8 @@ int interval_add_float_callback(const char *label, const char *fmt, float_callba
     find_in_list(found, label, fmt);
 
     if (found != NULL) {
-	found->callback.float_cb = callback;
+	found->callback.u.float_cb = callback;
+	found->callback.callback_set = true;
 	PRINT_DEBUG("Interval %s:%s added float cb\n", label, fmt);
 	return ATMOTUBE_RET_OK;
     }
@@ -233,7 +257,9 @@ static void interval_log_impl(gpointer data,
 	    if (p->last) {
 		PRINT_DEBUG("+Logging(%s): %s, %lu times, current = %lu\n", p->fmt, p->label, i->times, i->current.ul);
 		i->times = 0;
-		i->callback.ulong_cb(ts, i->current.ul);
+		if (i->callback.callback_set) {
+		    i->callback.u.ulong_cb(ts, i->current.ul);
+		}
 	    }
 	    /*
 	    else {
@@ -256,7 +282,9 @@ static void interval_log_impl(gpointer data,
 	    if (p->last) {
 		PRINT_DEBUG("+Logging(%s): %s, %lu times, current = %f\n", p->fmt, p->label, i->times, i->current.d);
 		i->times = 0;
-		i->callback.float_cb(ts, i->current.d);
+		if (i->callback.callback_set) {
+		    i->callback.u.float_cb(ts, i->current.d);
+		}
 	    }
 	    /*
 	    else {

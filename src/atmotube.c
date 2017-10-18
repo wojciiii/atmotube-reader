@@ -479,6 +479,50 @@ int atmotube_disconnect()
   }
 }
 
+static void modify_intervals(AtmotubeData* d, bool add_interval)
+{
+    if (add_interval) {
+	PRINT_DEBUG("Adding intervals\n");
+    } else {
+	PRINT_DEBUG("Removing intervals\n");
+    }
+    
+    uint8_t character_id;
+    uint16_t interval = INTERVAL_SEC_TO_MS(d->resolution);
+    for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
+	const char* label = intervalnames[character_id];
+	const char* fmt = fmts[character_id];
+	if (strlen(fmt) > 0) {
+	    
+	    if (add_interval) {
+		PRINT_DEBUG("Adding interval: %s:%s\n", label, fmt);
+		interval_add(label, fmt);
+		interval_start(label, fmt, interval);
+		
+		switch (character_id) {
+		case VOC:
+		    interval_add_float_callback(label, fmt, output_voc);
+		    break;
+		case HUMIDITY:
+		    interval_add_ulong_callback(label, fmt, output_humidity);
+		    break;
+		case TEMPERATURE:
+		    interval_add_ulong_callback(label, fmt, output_temperature);
+		    break;
+		case STATUS:
+		    break;
+		}
+	    }
+	    else {
+		PRINT_DEBUG("Removing interval: %s:%s\n", label, fmt);
+		interval_remove_callbacks(label, fmt);
+		interval_stop(label, fmt);
+		interval_remove(label, fmt);
+	    }
+	}
+    }
+}
+
 static void register_impl(gpointer data,
                           gpointer user_data)
 {
