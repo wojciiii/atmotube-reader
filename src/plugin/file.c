@@ -14,10 +14,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "output.h"
-#include "atmotube.h"
-
-//https://eli.thegreenplace.net/2012/08/24/plugins-in-c
+#include "file.h"
 
 void output_temperature(unsigned long ts, unsigned long value)
 {

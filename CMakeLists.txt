@@ -2,10 +2,15 @@ cmake_minimum_required(VERSION 2.6)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GATTLIB REQUIRED gattlib)
 
-include(FindCheck.cmake)
-include(FindLibConfuse.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+#include(cmake/FindCheck.cmake)
+#include(cmake/FindLibConfuse.cmake)
+#include(cmake/FindSQLite3.cmake)
+find_package(LibConfuse)
+find_package(Check)
+find_package(SQLite3)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused -Wunused-function -Wunused-label -Wunused-parameter -Wunused-value -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused -Wunused-function -Wunused-label -Wunused-parameter -Wunused-value -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable -g -fdiagnostics-color=auto")
 
 if (CHECK_FOUND)
   message(STATUS "Found check")
@@ -14,6 +19,7 @@ else (CHECK_FOUND)
 endif(CHECK_FOUND)
 
 add_subdirectory (src)
+add_subdirectory (src/plugin)
 
 enable_testing()
 add_subdirectory (test)

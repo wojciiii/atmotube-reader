@@ -17,9 +17,27 @@
 #ifndef ATMOTUBE_CONFIG_H
 #define ATMOTUBE_CONFIG_H
 
+#define OUTPUT_FILE 0x1
+#define OUTPUT_DB   0x2
+
+typedef struct Atmotube_Device_S {
+    /* Device: */
+    int device_id;
+    const char* device_name;
+    const char* device_address;
+    const char* device_description;
+    int device_resolution;
+
+    /* Output: */
+    int output_type;
+    const char* output_filename;
+} Atmotube_Device;
+
 void atmotube_config_start(char* fullName);
 
-int atmotube_config_load(int (*fp)(char* name, char* deviceAddress, char* description, int resolution));
+typedef int (deviceCB)(Atmotube_Device* device);
+
+int atmotube_config_load(deviceCB* deviceCb);
 
 void atmotube_config_end();
 

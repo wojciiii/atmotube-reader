@@ -1,14 +1,25 @@
 device one {
-	name = "test 01"
-	address = "B8:27:EB:E9:FD:F0"
-	description = "This is a test device"
-	resolution = 100
+    name = "one"
+    address = "B8:27:EB:E9:FD:F0"
+    description = "This is a test device"
+    resolution = 100
 }
 
 device two {
-	name = "test 02"
-	address = "B7:77:77:77:77:77"
-	description = "This is also a test device"
-	resolution = 10000
+    name = "two"
+    address = "B7:77:77:77:77:77"
+    description = "This is also a test device"
+    resolution = 10000
 }
 
+output file_one {
+    source = "one"
+    type = "file"
+    filename = "/tmp/atmotube_one.txt"
+}
+
+output db_one {
+    source = "one"
+    type = "db"
+    filename = "/tmp/atmotube_one.db"
+}

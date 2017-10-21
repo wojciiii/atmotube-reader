@@ -78,8 +78,9 @@ START_TEST (test_handle_STATUS_notification)
 }
 END_TEST
 
-static int dummy(char* name, char* deviceAddress, char* description, int resolution)
+static int dummy(Atmotube_Device* device)
 {
+    free(device);
     return 0;
 }
 
@@ -159,14 +160,14 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
-
+    /*
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
     tcase_add_test(tc_core, test_handle_STATUS_notification);
-    /*
+    */
     tcase_add_test(tc_core, test_load_config);
-
+    /*
     tcase_add_test(tc_core, test_interval);
     */
     //tcase_add_test(tc_core, test_name);
