@@ -26,15 +26,17 @@
 #include "atmotube.h"
 
 static GMainLoop *loop = NULL;
+static bool aborted    = false;
+
 
 void intHandler(int dummy)
 {
-  printf("INT handler\n");
-  
-  if (loop != NULL)
-  {
-    g_main_loop_quit (loop);
-  }
+    printf("INT handler\n");
+    
+    if (loop != NULL) {
+	g_main_loop_quit (loop);
+    }
+    aborted = true;
 }
 
 /* Sleep for a number of milliseconds. */
@@ -60,7 +62,6 @@ int main(int argc, char *argv[]) {
     uint16_t start        = 500;
     uint16_t milliseconds = 500;
     uint16_t increase     = 250;
-    bool aborted          = false;
 
     while (retry < max_retries) {
 	printf("Connecting to device (%d/%d).\n", retry, max_retries);
@@ -76,6 +77,10 @@ int main(int argc, char *argv[]) {
 	    break;
 	}
 
+	if (aborted) {
+	    break;
+	}
+	
 	retry++;
     }
 
@@ -93,8 +98,7 @@ int main(int argc, char *argv[]) {
 
     printf("Registering handlers.\n");
     ret = atmotube_register();
-    if (ret != ATMOTUBE_RET_OK)
-    {
+    if (ret != ATMOTUBE_RET_OK) {
         atmotube_disconnect();
         atmotube_end();
     }
@@ -110,54 +114,4 @@ int main(int argc, char *argv[]) {
     atmotube_end();
 
     return 0;
-
-/*
-    printf("Connecting\n");
-
-    connection = gattlib_connect(NULL, deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
-    if (connection == NULL)
-    {
-        fprintf(stderr, "Fail to connect to the bluetooth device.\n");
-        atmotube_end();
-        return 1;
-    }
-
-    printf("Connected\n");
-
-    printf("Register notification\n");
-    gattlib_register_notification(connection, atmotube_handle_notification, NULL);
-    printf("Register notification done\n");
-
-    ret = 0;
-    ret += atmotube_notify_on_characteristic(connection, VOC);
-    ret += atmotube_notify_on_characteristic(connection, HUMIDITY);
-    ret += atmotube_notify_on_characteristic(connection, TEMPERATURE);
-    ret += atmotube_notify_on_characteristic(connection, STATUS);
-
-    if (ret != 0)
-    {
-      gattlib_disconnect(connection);
-      atmotube_end();
-      return 1;
-    }
-
-    loop = g_main_loop_new(NULL, 0);
-    g_main_loop_run(loop);
-
-    g_main_loop_unref(loop);
-
-  atmotube_stop_notification(connection, VOC);
-    atmotube_stop_notification(connection, HUMIDITY);
-    atmotube_stop_notification(connection, TEMPERATURE);
-    atmotube_stop_notification(connection, STATUS);
-
-  printf("Disconnecting\n");
-
-    gattlib_disconnect(connection);
-
-    printf("Done\n");
-
-  atmotube_end();
-    return 0;
-    */
 }

@@ -60,7 +60,6 @@ void atmotube_start()
     DEF_ATMOTUBE_SEARCH_TIMEOUT = 4;
 
     init_gl_data(&glData);
- 
 }
 
 int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id)
@@ -192,10 +191,10 @@ static int numDevices = 0;
 static AtmotubeData* devices = NULL;
 
 /* Get a pointer to list of structs used for devices. */
-static void* atmotube_num_devices(int numDevices)
+static void* atmotube_num_devices(int n)
 {
-    numDevices = numDevices;
-    devices = (AtmotubeData*)malloc(sizeof(AtmotubeData)*numDevices);
+    numDevices = n;
+    devices = (AtmotubeData*)malloc(sizeof(AtmotubeData)*n);
     return devices;
 }
     
@@ -222,16 +221,16 @@ int atmotube_add_devices_from_config(char* fullName)
   int ret = atmotube_config_load(atmotube_num_devices, atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
   // TODO: error checking!
   int i = 0;
-  
+
+  PRINT_DEBUG("Devices: %d\n", numDevices);
+      
   for (i = 0; i < numDevices; i++) {
       AtmotubeData* d = devices + i;
       d->connection = NULL;
       d->connected  = 0;
       d->registred  = 0;
       dumpAtmotubeData(d);
-
       glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
-
   }
   
   atmotube_config_end();

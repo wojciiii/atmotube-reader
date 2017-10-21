@@ -163,7 +163,7 @@ static void dumpDevice(Atmotube_Device* device)
  * [ Atmotube_Device member              ]
  * [ something else                      ]
  * [                                     ] element_size
- * 
+ *
  */
 
 static Atmotube_Device* get_ptr(void *src, int number, size_t element_size, size_t offset)
