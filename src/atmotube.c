@@ -23,7 +23,6 @@
 
 #include "atmotube.h"
 #include "atmotube-private.h"
-
 #include "atmotube-config.h"
 #include "interval.h"
 #include "output.h"
@@ -186,48 +185,55 @@ char** atmotube_get_found_devices()
 
 static void dumpAtmotubeData(AtmotubeData* d)
 {
-  PRINT_DEBUG("deviceAddress = %s\n", d->device->device_address);
+  PRINT_DEBUG("deviceAddress = %s\n", d->device.device_address);
 }
 
-static int atmotibe_add_output(char* src, int device_id, char* filename)
+static int numDevices = 0;
+static AtmotubeData* devices = NULL;
+
+/* Get a pointer to list of structs used for devices. */
+static void* atmotube_num_devices(int numDevices)
 {
-    return 0;
+    numDevices = numDevices;
+    devices = (AtmotubeData*)malloc(sizeof(AtmotubeData)*numDevices);
+    return devices;
 }
-
-static int atmotube_add_device(Atmotube_Device* device)
+    
+static int atmotube_add_device(void* m)
 {
-  if (device->device_resolution < ATMOTUBE_MIN_RESOUTION)
-  {
-    PRINT_DEBUG("Resolution is invalid(%d < %d)\n", device->device_resolution, ATMOTUBE_MIN_RESOUTION);
-    return ATMOTUBE_RET_ERROR;
-  }
-
-  if (device->device_resolution > ATMOTUBE_MAX_RESOUTION)
-  {
-    PRINT_DEBUG("Resolution is invalid(%d > %d)\n", device->device_resolution, ATMOTUBE_MAX_RESOUTION);
-    return ATMOTUBE_RET_ERROR;
-  }
-
-  AtmotubeData* d = (AtmotubeData*)malloc(sizeof(AtmotubeData));
-  d->device = device;
-  
-  d->connection = NULL;
-  d->connected  = 0;
-  d->registred  = 0;
-
-  dumpAtmotubeData(d);
-
-  glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
-
-  return ATMOTUBE_RET_OK;
+    Atmotube_Device* d = (Atmotube_Device*)m;
+    
+    if (d->device_resolution < ATMOTUBE_MIN_RESOUTION) {
+	PRINT_DEBUG("Resolution is invalid(%d < %d)\n", d->device_resolution, ATMOTUBE_MIN_RESOUTION);
+	return ATMOTUBE_RET_ERROR;
+    }
+    
+    if (d->device_resolution > ATMOTUBE_MAX_RESOUTION) {
+	PRINT_DEBUG("Resolution is invalid(%d > %d)\n", d->device_resolution, ATMOTUBE_MAX_RESOUTION);
+	return ATMOTUBE_RET_ERROR;
+    }
+   
+    return ATMOTUBE_RET_OK;
 }
 
 int atmotube_add_devices_from_config(char* fullName)
 {
   atmotube_config_start(fullName);
+  int ret = atmotube_config_load(atmotube_num_devices, atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
+  // TODO: error checking!
+  int i = 0;
+  
+  for (i = 0; i < numDevices; i++) {
+      AtmotubeData* d = devices + i;
+      d->connection = NULL;
+      d->connected  = 0;
+      d->registred  = 0;
+      dumpAtmotubeData(d);
 
-  int ret = atmotube_config_load(atmotube_add_device);
+      glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
 
+  }
+  
   atmotube_config_end();
 
   return ret;
@@ -239,10 +245,10 @@ static void connect_impl(gpointer data,
   AtmotubeData* d = (AtmotubeData*)data;
   int* ret = (int*)user_data;
 
-  PRINT_DEBUG("Connecting to %s\n", d->device->device_address);
-  PRINT_DEBUG("Using resolution: %d\n", d->device->device_resolution);
+  PRINT_DEBUG("Connecting to %s\n", d->device.device_address);
+  PRINT_DEBUG("Using resolution: %d\n", d->device.device_resolution);
   
-  d->connection = gattlib_connect(NULL, d->device->device_address, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
+  d->connection = gattlib_connect(NULL, d->device.device_address, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0);
   //d->connection = gattlib_connect_timeout(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0, 5);
   if (d->connection == NULL)
   {
@@ -265,11 +271,11 @@ static void disconnect_impl(gpointer data,
 
   if (d->connected)
   {
-    PRINT_DEBUG("Disconnecting %s\n", d->device->device_address);
+    PRINT_DEBUG("Disconnecting %s\n", d->device.device_address);
 
     if (gattlib_disconnect(d->connection) == 0)
     {
-      PRINT_DEBUG("Disconnected from %s\n", d->device->device_address);
+      PRINT_DEBUG("Disconnected from %s\n", d->device.device_address);
       d->connected = false;
     }
     else
@@ -320,7 +326,7 @@ static void modify_intervals(AtmotubeData* d, bool add_interval)
     }
     
     uint8_t character_id;
-    uint16_t interval = INTERVAL_SEC_TO_MS(d->device->device_resolution);
+    uint16_t interval = INTERVAL_SEC_TO_MS(d->device.device_resolution);
     for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
 	const char* label = intervalnames[character_id];
 	const char* fmt = fmts[character_id];
@@ -365,7 +371,7 @@ static void register_impl(gpointer data,
   if (!d->connected)
   {
       *ud += 1;
-      PRINT_DEBUG("Unable to register, not connected to %s\n", d->device->device_address);
+      PRINT_DEBUG("Unable to register, not connected to %s\n", d->device.device_address);
       d->connected = false;
       return;
   }
@@ -377,7 +383,7 @@ static void register_impl(gpointer data,
   /* Add intervals. */
   PRINT_DEBUG("Adding intervals\n");
   uint8_t character_id;
-  uint16_t interval = INTERVAL_SEC_TO_MS(d->device->device_resolution);
+  uint16_t interval = INTERVAL_SEC_TO_MS(d->device.device_resolution);
   for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
       const char* label = intervalnames[character_id];
       const char* fmt = fmts[character_id];
@@ -411,7 +417,7 @@ static void register_impl(gpointer data,
 
   if (ret != 0)
   {
-    PRINT_DEBUG("atmotube_notify_on_characteristic failed for %s\n", d->device->device_address);
+    PRINT_DEBUG("atmotube_notify_on_characteristic failed for %s\n", d->device.device_address);
     gattlib_disconnect(d->connection);
     d->connected = false;
     *ud += 1;

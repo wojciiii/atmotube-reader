@@ -103,7 +103,7 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
   enum CHARACTER_ID id = CHARACTER_MAX;
   AtmotubeData* d = (AtmotubeData*)user_data;
 
-  PRINT_DEBUG("Notification Handler for %s:\n", d->device->device_address);
+  PRINT_DEBUG("Notification Handler for %s:\n", d->device.device_address);
 
   for (i = VOC; i < CHARACTER_MAX; i++)
   {

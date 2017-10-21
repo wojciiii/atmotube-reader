@@ -78,9 +78,19 @@ START_TEST (test_handle_STATUS_notification)
 }
 END_TEST
 
-static int dummy(Atmotube_Device* device)
+static Atmotube_Device* deviceStore = NULL;
+
+static void* dummy1(int num_devices)
 {
-    free(device);
+    deviceStore = (Atmotube_Device*)malloc(num_devices * sizeof(Atmotube_Device));
+    return deviceStore;
+}
+
+static int dummy2(void* memory)
+{
+    Atmotube_Device* d = (Atmotube_Device*)memory;
+    printf("Callback device: %s\n", d->device_name);
+    
     return 0;
 }
 
@@ -89,11 +99,54 @@ START_TEST (test_load_config)
     char* fullName = "../test/config.txt";
     atmotube_config_start(fullName);
 
-    int ret = atmotube_config_load(dummy);
+    int ret = atmotube_config_load(dummy1, dummy2, sizeof(Atmotube_Device), 0);
     if (ret == 0)
     {
         atmotube_config_end();
     }
+    free(deviceStore);
+    deviceStore = NULL;
+}
+END_TEST
+
+typedef struct
+{
+    int somedata;
+    uint32_t someotherData;
+    Atmotube_Device device;
+    uint32_t evenmoredata;    
+} StructWithOffset;
+
+static StructWithOffset* deviceStore2 = NULL;
+
+static void* dummy3(int num_devices)
+{
+    deviceStore2 = (StructWithOffset*)malloc(num_devices * sizeof(StructWithOffset));
+    memset(deviceStore2, 0, num_devices * sizeof(StructWithOffset));
+    return deviceStore2;
+}
+
+static int dummy4(void* memory)
+{
+    Atmotube_Device* d = (Atmotube_Device*)memory;
+    printf("Callback device: %s\n", d->device_name);
+    return 0;
+}
+
+START_TEST (test_load_config_offset)
+{
+    char* fullName = "../test/config.txt";
+    atmotube_config_start(fullName);
+
+    size_t offset = offsetof(StructWithOffset, device);
+    printf("Using offset: %d\n", offset);
+    int ret = atmotube_config_load(dummy3, dummy4, sizeof(StructWithOffset), offset);
+    if (ret == 0)
+    {
+        atmotube_config_end();
+    }
+    free(deviceStore2);
+    deviceStore2 = NULL;
 }
 END_TEST
 
@@ -167,6 +220,7 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_handle_STATUS_notification);
     */
     tcase_add_test(tc_core, test_load_config);
+    tcase_add_test(tc_core, test_load_config_offset);
     /*
     tcase_add_test(tc_core, test_interval);
     */

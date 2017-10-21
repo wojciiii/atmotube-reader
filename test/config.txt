@@ -2,14 +2,14 @@ device one {
     name = "one"
     address = "B8:27:EB:E9:FD:F0"
     description = "This is a test device"
-    resolution = 100
+    resolution = 300
 }
 
 device two {
     name = "two"
     address = "B7:77:77:77:77:77"
     description = "This is also a test device"
-    resolution = 10000
+    resolution = 400
 }
 
 output file_one {
@@ -19,7 +19,7 @@ output file_one {
 }
 
 output db_one {
-    source = "one"
+    source = "two"
     type = "db"
     filename = "/tmp/atmotube_one.db"
 }

@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 static cfg_t *cfg;
 
@@ -141,11 +142,48 @@ void atmotube_config_start(char* fullName)
 	PRINT_DEBUG("Using config file: %s\n", configFilename);
 }
 
-int atmotube_config_load(deviceCB* deviceFb)
+static void dumpDevice(Atmotube_Device* device)
+{
+    PRINT_DEBUG("Device #%u (%s):\n", device->device_id, device->device_name);
+    PRINT_DEBUG("  address = %s\n", device->device_address);
+    PRINT_DEBUG("  description = %s\n", device->device_description);
+    PRINT_DEBUG("  resolution = %d\n", device->device_resolution);
+    PRINT_DEBUG("  output type = %d\n", device->output_type);
+    PRINT_DEBUG("  filename = %s\n", device->output_filename);
+}
+
+/*
+ * [ struct 0 containing Atmotube_Device ]
+ * [ offset                              ]
+ * [ Atmotube_Device member              ]
+ * [ something else                      ]
+ * [                                     ] element_size
+ * [ struct 1 containing Atmotube_Device ]
+ * [ offset                              ]
+ * [ Atmotube_Device member              ]
+ * [ something else                      ]
+ * [                                     ] element_size
+ * 
+ */
+
+static Atmotube_Device* get_ptr(void *src, int number, size_t element_size, size_t offset)
+{
+    void* p = src;
+    p += (number * element_size);
+    p += offset;
+    return (Atmotube_Device*)p;
+}
+
+int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
+			 size_t element_size, size_t offset)
 {
     int ret = 0;
     int i = 0;
-
+    int j = 0;
+    void* memory = NULL;
+    Atmotube_Device* devices = NULL;
+    int deviceId = 0;
+    
     cfg = cfg_init(opts, CFGF_NOCASE);
     cfg_set_validate_func(cfg, "device", &validate_device);
     cfg_set_validate_func(cfg, "output", &validate_output);
@@ -154,48 +192,96 @@ int atmotube_config_load(deviceCB* deviceFb)
     PRINT_DEBUG("Load: cfg_parse, ret=%d\n", ret);
     
     if (ret != 0) {
+	cfg_free(cfg);
 	return ATMOTUBE_RET_ERROR;
     }
     
     numDevices = cfg_size(cfg, "device");
-	
     PRINT_DEBUG("Load: %d device(s) present\n", numDevices);
-
-    for (i = 0; i < numDevices; i++) {
-	
-    }
-    
-    for (i = 0; i < numDevices; i++) {
-	cfg_t *device = cfg_getnsec(cfg, "device", i);
-	PRINT_DEBUG("Device #%u (%s):\n", i + 1, cfg_title(device));
-	PRINT_DEBUG("  name = %s\n", cfg_getstr(device, "name"));
-	PRINT_DEBUG("  address = %s\n", cfg_getstr(device, "address"));
-	PRINT_DEBUG("  description = %s\n", cfg_getstr(device, "description"));
-	PRINT_DEBUG("  resolution = %ld\n", cfg_getint(device, "resolution"));
-
-	/*
-	ret = deviceFb(
-		       0,
-		       cfg_getstr(device, "name"),
-		       cfg_getstr(device, "address"),
-		       cfg_getstr(device, "description"),
-		       cfg_getint(device, "resolution")
-		       );
-	*/
-	PRINT_DEBUG("Added device, ret = %d\n", ret);
-    }
     
     numOutputs = cfg_size(cfg, "output");
     PRINT_DEBUG("Load: %d output(s) present\n", numOutputs);
-    
-    for (i = 0; i < numDevices; i++) {
-	cfg_t *output = cfg_getnsec(cfg, "output", i);
-	PRINT_DEBUG("Output #%u (%s):\n", i + 1, cfg_title(output));
-	PRINT_DEBUG("  type = %ld\n", cfg_getint(output, "type"));
-	PRINT_DEBUG("  filename = %s\n", cfg_getstr(output, "filename"));
-	PRINT_DEBUG("  source = %s\n", cfg_getstr(output, "source"));
+
+    /* Check that devices and outputs match: */
+    if (numDevices != numOutputs) {
+	printf("Unexpected number of devices (%d) vs outputs (%d).\n", numDevices, numOutputs);
+	printf("Was expecting %d outputs\n", numDevices);
+	cfg_free(cfg);
+	return ATMOTUBE_RET_ERROR;
     }
-    
+
+    /* Get memory used to keep devices in. */
+    memory = numDevicesCb(numDevices);
+
+    deviceId = 0;
+    for (i = 0; i < numDevices; i++) {
+	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
+	device->device_id = deviceId;
+	device->device_name = NULL;
+
+	device->device_address = NULL;
+	device->device_description = NULL;
+	device->device_resolution = NULL;
+	device->output_type = -1;
+	device->output_filename = NULL;
+    }
+	
+    deviceId = 0;
+    for (i = 0; i < numDevices; i++) {
+	cfg_t *cfg_device = cfg_getnsec(cfg, "device", i);
+	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
+
+	device->device_id = deviceId;
+	device->device_name = cfg_getstr(cfg_device, "name");
+	device->device_address = cfg_getstr(cfg_device, "address");
+	device->device_description = cfg_getstr(cfg_device, "description");
+	device->device_resolution = cfg_getint(cfg_device, "resolution");
+
+	PRINT_DEBUG("Added device %d\n", deviceId);
+	deviceId++;
+    }
+
+    for (i = 0; i < numOutputs; i++) {
+	cfg_t *cfg_output = cfg_getnsec(cfg, "output", i);
+	char* src = cfg_getstr(cfg_output, "source");
+
+	PRINT_DEBUG("Output %s\n", src);
+			
+	bool found = false;
+	for (j = 0; j < numDevices; j++) {
+	    Atmotube_Device* device = get_ptr(memory, j, element_size, offset);
+	    if (strcmp(device->device_name, src) == 0) {
+		PRINT_DEBUG("Found device %s for source %s\n", device->device_name, src);
+		device->output_type = cfg_getint(cfg_output, "type");
+		device->output_filename = cfg_getstr(cfg_output, "filename");
+		found = true;
+	    }
+	}
+	if (!found) {
+	    printf("Unable to find source %s\n", src);
+	    cfg_free(cfg);
+	    return ATMOTUBE_RET_ERROR;
+	}
+    }
+
+    /* Check that all inputs have corresponding outputs: */
+    for (i = 0; i < numDevices; i++) {
+	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
+
+	if (device->output_type == -1) {
+	    printf("Device %s needs an output. Can't continue.\n", device->device_name);
+	    cfg_free(cfg);
+	    return ATMOTUBE_RET_ERROR;
+	}
+    }
+
+    /* The configuration is complete. */
+    for (i = 0; i < numDevices; i++) {
+	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
+	dumpDevice(device);
+	deviceFb(device);
+    }
+   
     cfg_free(cfg);
     cfg = NULL;
     

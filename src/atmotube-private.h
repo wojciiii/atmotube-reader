@@ -26,7 +26,7 @@
 typedef struct
 {
     /* Description from config:*/
-    Atmotube_Device* device;
+    Atmotube_Device device;
     /* Runtime settings: */
     gatt_connection_t* connection;
     bool connected;

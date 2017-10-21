@@ -17,6 +17,8 @@
 #ifndef ATMOTUBE_CONFIG_H
 #define ATMOTUBE_CONFIG_H
 
+#include <stddef.h>
+
 #define OUTPUT_FILE 0x1
 #define OUTPUT_DB   0x2
 
@@ -35,9 +37,11 @@ typedef struct Atmotube_Device_S {
 
 void atmotube_config_start(char* fullName);
 
-typedef int (deviceCB)(Atmotube_Device* device);
+typedef int (deviceCB)(void* memory);
+typedef void* (NumDevicesCB)(int numDevices);
 
-int atmotube_config_load(deviceCB* deviceCb);
+/* offset - Atmotube_Device offset in the provided memory which is (n x element_size) size bytes. */
+int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceCb, size_t element_size, size_t offset);
 
 void atmotube_config_end();
 
