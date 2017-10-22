@@ -14,19 +14,29 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "file.h"
+#include "db.h"
 
-void output_temperature(unsigned long ts, unsigned long value)
+int plugin_start(AtmotubeOutput* o)
+{
+    return -1;
+}
+
+int plugin_stop(void)
+{
+    return -1;
+}
+
+void temperature(unsigned long ts, unsigned long value)
 {
 
 }
 
-void output_humidity(unsigned long ts, unsigned long value)
+void humidity(unsigned long ts, unsigned long value)
 {
 
 }
 
-void output_voc(unsigned long ts, float value)
+void voc(unsigned long ts, float value)
 {
 
 }

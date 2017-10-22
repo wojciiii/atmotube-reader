@@ -15,18 +15,54 @@
 */
 
 #include "file.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include "atmotube_common.h"
 
-void output_temperature(unsigned long ts, unsigned long value)
+static bool started = false;
+static FILE* f = NULL;
+
+int plugin_start(AtmotubeOutput* o)
 {
-
+    f = fopen(o->filename, "a");
+    if (f == NULL) {
+	PRINT_ERROR("Unable to open file %s for appending", o->filename);
+	return ATMOTUBE_RET_ERROR;
+    }
+    
+    started = true;
+    return -1;
 }
 
-void output_humidity(unsigned long ts, unsigned long value)
+int plugin_stop(void)
 {
+    if (started) {
+	started = false;
+	fclose(f);
+	return ATMOTUBE_RET_OK;
+    }
 
+    PRINT_ERROR("Invalid state");
+    return ATMOTUBE_RET_ERROR;
 }
 
-void output_voc(unsigned long ts, float value)
+void temperature(unsigned long ts, unsigned long value)
 {
+    if (started) {
+	fprintf(f, "%lu,temperature,%lu", ts, value);
+    }
+}
 
+void humidity(unsigned long ts, unsigned long value)
+{
+    if (started) {
+	fprintf(f, "%lu,humidity,%lu", ts, value);
+    }
+}
+
+void voc(unsigned long ts, float value)
+{
+    if (started) {
+	fprintf(f, "%lu,voc,%f", ts, value);
+    }
 }

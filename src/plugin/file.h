@@ -14,12 +14,10 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#ifndef FILE_H
+#define FILE_H
 
-void output_temperature(unsigned long ts, unsigned long value);
-void output_humidity(unsigned long ts, unsigned long value);
-void output_voc(unsigned long ts, float value);
+#include "atmotube-plugin.h"
 
-#endif /* OUTPUT_H */
+#endif /* FILE_H */
 

@@ -26,14 +26,22 @@
 #include "interval.h"
 #include "atmotube-output.h"
 #include "atmotube-private.h"
+#include "atmotube-plugin.h"
 
 extern AtmotubeGlData glData;
 
 int atmotube_create_outputs()
 {
     int i;
+    int ret;
     PRINT_DEBUG("Devices: %d\n", glData.deviceConfigurationSize);
-      
+
+    ret = plugin_find();
+    if (ret == 0) {
+	PRINT_ERROR("No plugins found.\n");
+	return ATMOTUBE_RET_ERROR;
+    }
+    
     for (i = 0; i < glData.deviceConfigurationSize; i++) {
 	AtmotubeData* d = glData.deviceConfiguration + i;
 	

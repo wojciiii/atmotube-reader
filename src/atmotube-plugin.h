@@ -14,25 +14,27 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ATMOTUBE_COMMON_H
-#define ATMOTUBE_COMMON_H
+#ifndef ATMOTUBE_PLUGIN_H
+#define ATMOTUBE_PLUGIN_H
 
-#define ATMOTUBE_RET_OK 0
-#define ATMOTUBE_RET_ERROR 1
+#include "atmotube-output.h"
 
-#ifndef DEBUG
-#define DEBUG 1
-#endif
+/* Finding / loading */
+int plugin_find(void);
+int plugin_load(int type);
 
-#if (DEBUG)
-#include <stdio.h>
-#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#else
-#  define PRINT_DEBUG(fmt, ...)
-#endif
+int plugin_unload_all();
 
-#define PRINT_ERROR(fmt, ...) printf(fmt, ##__VA_ARGS__)
+/* Plugin interface */
 
-#define UNUSED(x) (void)(x)
+int plugin_start(AtmotubeOutput* o);
 
-#endif /* ATMOTUBE_COMMON_H */
+void temperature(unsigned long ts, unsigned long value);
+void humidity(unsigned long ts, unsigned long value);
+void voc(unsigned long ts, float value);
+
+int plugin_stop(void);
+
+/* Plugin interface */
+
+#endif /* ATMOTUBE_PLUGIN_H */

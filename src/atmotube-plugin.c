@@ -14,25 +14,33 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ATMOTUBE_COMMON_H
-#define ATMOTUBE_COMMON_H
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
+#include <glib.h>
+#include <stdbool.h>
 
-#define ATMOTUBE_RET_OK 0
-#define ATMOTUBE_RET_ERROR 1
+#include "atmotube-plugin.h"
+#include "atmotube.h"
+#include "atmotube-config.h"
+#include "interval.h"
+#include "atmotube-private.h"
 
-#ifndef DEBUG
-#define DEBUG 1
-#endif
+extern AtmotubeGlData glData;
 
-#if (DEBUG)
-#include <stdio.h>
-#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#else
-#  define PRINT_DEBUG(fmt, ...)
-#endif
+int plugin_find(void)
+{
+    return ATMOTUBE_RET_ERROR;
+}
 
-#define PRINT_ERROR(fmt, ...) printf(fmt, ##__VA_ARGS__)
+int plugin_load(int type)
+{
 
-#define UNUSED(x) (void)(x)
+}
 
-#endif /* ATMOTUBE_COMMON_H */
+int plugin_unload_all()
+{
+
+}
+
