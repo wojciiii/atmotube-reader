@@ -25,7 +25,19 @@
 #include "atmotube-private.h"
 #include "atmotube-config.h"
 #include "interval.h"
-#include "output.h"
+#include "atmotube-output.h"
+
+AtmotubeGlData glData;
+
+char* CHARACTER_UUIDS[NUM_UUIDS] = {
+  "db450002-8e9a-4818-add7-6ed94a328ab2",
+  "db450003-8e9a-4818-add7-6ed94a328ab2",
+  "db450004-8e9a-4818-add7-6ed94a328ab2",
+  "db450005-8e9a-4818-add7-6ed94a328ab2"
+};
+uuid_t UUIDS[NUM_UUIDS] = { CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0) };
+char *intervalnames[] = {"VOC", "HUMIDITY", "TEMPERATURE", "STATUS"};
+char *fmts[] = {INTERVAL_FLOAT, INTERVAL_ULONG, INTERVAL_ULONG, ""};
 
 static uint64_t getTimeStamp() {
     struct timeval tv;
@@ -39,6 +51,9 @@ static void init_gl_data(AtmotubeGlData *ptr)
   ptr->search_name = NULL;
   ptr->connectableDevices = NULL;
   ptr->foundDevices = NULL;
+
+  ptr->deviceConfigurationSize = 0;
+  ptr->deviceConfiguration = NULL;
 }
 
 void atmotube_start()
@@ -184,18 +199,18 @@ char** atmotube_get_found_devices()
 
 static void dumpAtmotubeData(AtmotubeData* d)
 {
-  PRINT_DEBUG("deviceAddress = %s\n", d->device.device_address);
+  PRINT_DEBUG("DUMP: deviceAddress = %s\n", d->device.device_address);
 }
 
-static int numDevices = 0;
-static AtmotubeData* devices = NULL;
+//static int numDevices = 0;
+//static AtmotubeData* devices = NULL;
 
 /* Get a pointer to list of structs used for devices. */
 static void* atmotube_num_devices(int n)
 {
-    numDevices = n;
-    devices = (AtmotubeData*)malloc(sizeof(AtmotubeData)*n);
-    return devices;
+    glData.deviceConfigurationSize = n;
+    glData.deviceConfiguration = (AtmotubeData*)malloc(sizeof(AtmotubeData)*n);
+    return glData.deviceConfiguration;
 }
     
 static int atmotube_add_device(void* m)
@@ -222,13 +237,14 @@ int atmotube_add_devices_from_config(char* fullName)
   // TODO: error checking!
   int i = 0;
 
-  PRINT_DEBUG("Devices: %d\n", numDevices);
+  PRINT_DEBUG("Devices: %d\n", glData.deviceConfigurationSize);
       
-  for (i = 0; i < numDevices; i++) {
-      AtmotubeData* d = devices + i;
+  for (i = 0; i < glData.deviceConfigurationSize; i++) {
+      AtmotubeData* d = glData.deviceConfiguration + i;
       d->connection = NULL;
       d->connected  = 0;
       d->registred  = 0;
+      d->output     = NULL;
       dumpAtmotubeData(d);
       glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
   }
@@ -338,13 +354,13 @@ static void modify_intervals(AtmotubeData* d, bool add_interval)
 		
 		switch (character_id) {
 		case VOC:
-		    interval_add_float_callback(label, fmt, output_voc);
+		    interval_add_float_callback(label, fmt, output_voc, d);
 		    break;
 		case HUMIDITY:
-		    interval_add_ulong_callback(label, fmt, output_humidity);
+		    interval_add_ulong_callback(label, fmt, output_humidity, d);
 		    break;
 		case TEMPERATURE:
-		    interval_add_ulong_callback(label, fmt, output_temperature);
+		    interval_add_ulong_callback(label, fmt, output_temperature, d);
 		    break;
 		case STATUS:
 		    break;
@@ -380,35 +396,11 @@ static void register_impl(gpointer data,
   PRINT_DEBUG("Register notification done\n");
 
   /* Add intervals. */
-  PRINT_DEBUG("Adding intervals\n");
-  uint8_t character_id;
-  uint16_t interval = INTERVAL_SEC_TO_MS(d->device.device_resolution);
-  for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
-      const char* label = intervalnames[character_id];
-      const char* fmt = fmts[character_id];
-      if (strlen(fmt) > 0) {
-	  PRINT_DEBUG("Adding interval: %s:%s\n", label, fmt);
-	  interval_add(label, fmt);
-	  interval_start(label, fmt, interval);
-
-	  switch (character_id) {
-	  case VOC:
-	      interval_add_float_callback(label, fmt, output_voc);
-	      break;
-	  case HUMIDITY:
-	      interval_add_ulong_callback(label, fmt, output_humidity);
-	      break;
-	  case TEMPERATURE:
-	      interval_add_ulong_callback(label, fmt, output_temperature);
-	      break;
-	  case STATUS:
-	      break;
-	  }
-      }
-  }
+  modify_intervals(d, true);
 
   ret = 0;
 
+  uint8_t character_id;
   for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
       PRINT_DEBUG("Notify on: %u\n", character_id);
       ret += atmotube_notify_on_characteristic(d->connection, character_id);
@@ -417,6 +409,7 @@ static void register_impl(gpointer data,
   if (ret != 0)
   {
     PRINT_DEBUG("atmotube_notify_on_characteristic failed for %s\n", d->device.device_address);
+    modify_intervals(d, false);
     gattlib_disconnect(d->connection);
     d->connected = false;
     *ud += 1;
@@ -429,9 +422,10 @@ static void unregister_impl(gpointer data,
 {
     AtmotubeData* d = (AtmotubeData*)data;
     UNUSED(user_data);
-    /*int* ud = (int*)user_data;*/
     int ret = 0;
 
+    modify_intervals(d, false);
+    
     uint8_t character_id;
     for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
 	PRINT_DEBUG("Stop notify on: %u\n", character_id);

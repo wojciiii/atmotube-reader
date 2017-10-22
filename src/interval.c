@@ -20,6 +20,7 @@ typedef union
 typedef struct
 {
     bool callback_set;
+    void* callback_data_ptr;
     union
     {
 	ulong_callback ulong_cb;
@@ -111,6 +112,7 @@ int interval_remove_callbacks(const char *label, const char *fmt)
 
     if (found != NULL) {
 	found->callback.callback_set = false;
+	found->callback.callback_data_ptr = NULL;	
 	found->callback.u.ulong_cb = NULL;
 	found->callback.u.float_cb = NULL;
     }
@@ -121,7 +123,7 @@ int interval_remove_callbacks(const char *label, const char *fmt)
     return ATMOTUBE_RET_ERROR;
 }
 
-int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback)
+int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback, void* data_ptr)
 {
     Interval* found  = NULL;
     find_in_list(found, label, fmt);
@@ -129,6 +131,7 @@ int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callba
     if (found != NULL) {
 	found->callback.u.ulong_cb = callback;
 	found->callback.callback_set = true;
+	found->callback.callback_data_ptr = data_ptr;
 	PRINT_DEBUG("Interval %s:%s added ulong cb\n", label, fmt);
 	return ATMOTUBE_RET_OK;
     }
@@ -139,7 +142,7 @@ int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callba
     return ATMOTUBE_RET_ERROR;
 }
 
-int interval_add_float_callback(const char *label, const char *fmt, float_callback callback)
+int interval_add_float_callback(const char *label, const char *fmt, float_callback callback, void* data_ptr)
 {
     Interval* found  = NULL;
     find_in_list(found, label, fmt);
@@ -147,6 +150,7 @@ int interval_add_float_callback(const char *label, const char *fmt, float_callba
     if (found != NULL) {
 	found->callback.u.float_cb = callback;
 	found->callback.callback_set = true;
+	found->callback.callback_data_ptr = data_ptr;
 	PRINT_DEBUG("Interval %s:%s added float cb\n", label, fmt);
 	return ATMOTUBE_RET_OK;
     }
@@ -258,7 +262,7 @@ static void interval_log_impl(gpointer data,
 		PRINT_DEBUG("+Logging(%s): %s, %lu times, current = %lu\n", p->fmt, p->label, i->times, i->current.ul);
 		i->times = 0;
 		if (i->callback.callback_set) {
-		    i->callback.u.ulong_cb(ts, i->current.ul);
+		    i->callback.u.ulong_cb(ts, i->current.ul, i->callback.callback_data_ptr);
 		}
 	    }
 	    /*
@@ -283,7 +287,7 @@ static void interval_log_impl(gpointer data,
 		PRINT_DEBUG("+Logging(%s): %s, %lu times, current = %f\n", p->fmt, p->label, i->times, i->current.d);
 		i->times = 0;
 		if (i->callback.callback_set) {
-		    i->callback.u.float_cb(ts, i->current.d);
+		    i->callback.u.float_cb(ts, i->current.d, i->callback.callback_data_ptr);
 		}
 	    }
 	    /*

@@ -56,6 +56,19 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, intHandler);
     
     ret = atmotube_add_devices_from_config(NULL);
+    if (ret != ATMOTUBE_RET_OK) {
+	printf("Unable to add devices from config.\n");
+        atmotube_end();
+	return 1;
+    }
+    
+    ret = atmotube_create_outputs();
+    if (ret != ATMOTUBE_RET_OK) {
+	printf("Unable to create output(s).\n");
+        atmotube_end();
+	return 1;
+    }
+
     int retry             = 0;
     int max_retries       = 10;
     bool connected        = false;
@@ -87,13 +100,13 @@ int main(int argc, char *argv[]) {
     if (aborted) {
 	printf("Aborted (signal handler).\n");
 	atmotube_end();
-	return 0;
+	return 1;
     }
     
     if (!connected) {
 	printf("Failed to connect to device. Giving up.\n");
 	atmotube_end();
-	return 0;
+	return 1;
     }
 
     printf("Registering handlers.\n");

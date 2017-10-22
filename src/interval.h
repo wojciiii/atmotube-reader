@@ -26,11 +26,11 @@
 /* Define an interval described by a label and a format. */
 int interval_add(const char *label, const char *fmt);
 
-typedef void (*ulong_callback)(unsigned long, unsigned long);
-typedef void (*float_callback)(unsigned long, float);
+typedef void (*ulong_callback)(unsigned long, unsigned long, void* data_ptr);
+typedef void (*float_callback)(unsigned long, float, void* data_ptr);
 
-int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback);
-int interval_add_float_callback(const char *label, const char *fmt, float_callback callback);
+int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback, void* data_ptr);
+int interval_add_float_callback(const char *label, const char *fmt, float_callback callback, void* data_ptr);
 
 int interval_remove_callbacks(const char *label, const char *fmt);
 

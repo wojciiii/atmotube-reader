@@ -19,10 +19,14 @@
 
 #include "atmotube.h"
 #include "atmotube-config.h"
+#include "atmotube-output.h"
 #include "interval.h"
 
 #define NUM_UUIDS 4
 
+/* Global data used internally. */
+
+/* TODO: rename this! */
 typedef struct
 {
     /* Description from config:*/
@@ -31,31 +35,31 @@ typedef struct
     gatt_connection_t* connection;
     bool connected;
     bool registred;
+
+    AtmotubeOutput* output;
 } AtmotubeData;
 
 typedef struct
 {
-  void* adapter;
-  char* search_name;
+    void* adapter;
+    char* search_name;
 
-  GSList* connectableDevices;
-  GSList* foundDevices;
+    GSList* connectableDevices;
+    GSList* foundDevices;
 
+    /* Number of devices read from configuration. */
+    int deviceConfigurationSize;
+    /* List of pointers to device configurations. */
+    AtmotubeData* deviceConfiguration;
+
+    
 } AtmotubeGlData;
 
-static AtmotubeGlData glData;
+extern AtmotubeGlData glData;
 
-static char* CHARACTER_UUIDS[NUM_UUIDS] = {
-  "db450002-8e9a-4818-add7-6ed94a328ab2",
-  "db450003-8e9a-4818-add7-6ed94a328ab2",
-  "db450004-8e9a-4818-add7-6ed94a328ab2",
-  "db450005-8e9a-4818-add7-6ed94a328ab2"
-};
-
-static uuid_t UUIDS[NUM_UUIDS] = { CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID16(0x0) };
-
-static const char *intervalnames[] = {"VOC", "HUMIDITY", "TEMPERATURE", "STATUS"};
-
-static const char *fmts[] = {INTERVAL_FLOAT, INTERVAL_ULONG, INTERVAL_ULONG, ""};
+extern char* CHARACTER_UUIDS[NUM_UUIDS];
+extern uuid_t UUIDS[NUM_UUIDS];
+extern char *intervalnames[NUM_UUIDS];
+extern char *fmts[NUM_UUIDS];
 
 #endif

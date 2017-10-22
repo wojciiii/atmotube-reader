@@ -150,14 +150,19 @@ START_TEST (test_load_config_offset)
 }
 END_TEST
 
-void callback_ulong(unsigned long ts, unsigned long value)
+static void* p1 = (void*)0x1;
+static void* p2 = (void*)0x2;
+
+void callback_ulong(unsigned long ts, unsigned long value, void* data_ptr)
 {
     printf("Time: %lu, value=%lu\n", ts, value);
+    ck_assert(data_ptr == p1);
 }
 
-void callback_float(unsigned long ts, float value)
+void callback_float(unsigned long ts, float value, void* data_ptr)
 {
     printf("Time: %lu, value=%f\n", ts, value);
+    ck_assert(data_ptr == p2);
 }
 
 START_TEST (test_interval)
@@ -172,9 +177,10 @@ START_TEST (test_interval)
     interval_add(TEST2, INTERVAL_FLOAT);
     interval_add(TEST3, INTERVAL_ULONG);
 
-    interval_add_ulong_callback(TEST1, INTERVAL_ULONG, callback_ulong);
-    interval_add_float_callback(TEST2, INTERVAL_FLOAT, callback_float);
-    interval_add_ulong_callback(TEST3, INTERVAL_ULONG, callback_ulong);
+    
+    interval_add_ulong_callback(TEST1, INTERVAL_ULONG, callback_ulong, p1);
+    interval_add_float_callback(TEST2, INTERVAL_FLOAT, callback_float, p2);
+    interval_add_ulong_callback(TEST3, INTERVAL_ULONG, callback_ulong, p1);
  
     //interval_dump();
 
@@ -213,17 +219,17 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
-    /*
+
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
     tcase_add_test(tc_core, test_handle_STATUS_notification);
-    */
+
     tcase_add_test(tc_core, test_load_config);
     tcase_add_test(tc_core, test_load_config_offset);
-    /*
+
     tcase_add_test(tc_core, test_interval);
-    */
+
     //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 

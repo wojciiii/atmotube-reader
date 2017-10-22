@@ -14,22 +14,18 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "output.h"
-#include "atmotube.h"
+#ifndef ATMOTUBE_OUTPUT_H
+#define ATMOTUBE_OUTPUT_H
 
-//https://eli.thegreenplace.net/2012/08/24/plugins-in-c
-
-void output_temperature(unsigned long ts, unsigned long value)
+typedef struct
 {
+    int type;
+    char* filename;
+    void* state;
+} AtmotubeOutput;
 
-}
+void output_temperature(unsigned long ts, unsigned long value, void* data_ptr);
+void output_humidity(unsigned long ts, unsigned long value, void* data_ptr);
+void output_voc(unsigned long ts, float value, void* data_ptr);
 
-void output_humidity(unsigned long ts, unsigned long value)
-{
-
-}
-
-void output_voc(unsigned long ts, float value)
-{
-
-}
+#endif /* ATMOTUBE_OUTPUT_H */

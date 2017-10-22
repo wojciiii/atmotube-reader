@@ -218,7 +218,6 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
 	device->device_id = deviceId;
 	device->device_name = NULL;
-
 	device->device_address = NULL;
 	device->device_description = NULL;
 	device->device_resolution = NULL;
@@ -232,9 +231,9 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
 
 	device->device_id = deviceId;
-	device->device_name = cfg_getstr(cfg_device, "name");
-	device->device_address = cfg_getstr(cfg_device, "address");
-	device->device_description = cfg_getstr(cfg_device, "description");
+	device->device_name = strdup(cfg_getstr(cfg_device, "name"));
+	device->device_address = strdup(cfg_getstr(cfg_device, "address"));
+	device->device_description = strdup(cfg_getstr(cfg_device, "description"));
 	device->device_resolution = cfg_getint(cfg_device, "resolution");
 
 	PRINT_DEBUG("Added device %d\n", deviceId);
@@ -253,7 +252,7 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	    if (strcmp(device->device_name, src) == 0) {
 		PRINT_DEBUG("Found device %s for source %s\n", device->device_name, src);
 		device->output_type = cfg_getint(cfg_output, "type");
-		device->output_filename = cfg_getstr(cfg_output, "filename");
+		device->output_filename = strdup(cfg_getstr(cfg_output, "filename"));
 		found = true;
 	    }
 	}

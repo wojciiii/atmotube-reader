@@ -5,7 +5,7 @@ include_directories(${LIBCONFUSE_INCLUDE_DIR})
 
 link_directories(${GATTLIB_LIBDIR})
 
-add_library (atmlib atmotube.h atmotube-private.h atmotube.c atmotube-handler.c atmotube-config.h atmotube-config.c interval.h interval.c output.h output.c)
+add_library (atmlib atmotube.h atmotube-private.h atmotube.c atmotube-handler.c atmotube-output.c atmotube-output.h atmotube-config.h atmotube-config.c interval.h interval.c)
 
 add_executable(atmreader ${atmotube_reader_SRCS})
 target_link_libraries(atmreader atmlib)
