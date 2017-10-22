@@ -21,6 +21,8 @@
 
 #define OUTPUT_FILE 0x1
 #define OUTPUT_DB   0x2
+/* Some other plugin, not implemented yet: */
+#define OUTPUT_CUSTOM 0x3
 
 typedef struct Atmotube_Device_S {
     /* Device: */

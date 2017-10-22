@@ -54,6 +54,10 @@ int atmotube_create_outputs()
 	    PRINT_DEBUG("Creating output: DB\n");
 	    break;
 	}
+	case OUTPUT_CUSTOM: {
+	    PRINT_DEBUG("Creating output: custom\n");
+	    break;
+	}
 	}
     }
 

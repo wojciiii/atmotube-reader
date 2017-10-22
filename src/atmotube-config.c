@@ -77,6 +77,8 @@ static int validate_output_type(cfg_t *cfg, cfg_opt_t *opt, const char *value, v
 	*(int *)result = OUTPUT_FILE;
     else if(strcmp(value, "db") == 0)
 	*(int *)result = OUTPUT_DB;
+    else if(strcmp(value, "custom") == 0)
+	*(int *)result = OUTPUT_CUSTOM;
     else
 	{
 	    /* cfg_error(cfg, "Invalid action value '%s'", value); */
