@@ -20,6 +20,7 @@
 
 #include <atmotube.h>
 #include <atmotube-config.h>
+#include <atmotube-plugin.h>
 #include <interval.h>
 #include <unistd.h>
 
@@ -210,6 +211,43 @@ START_TEST (test_interval)
 }
 END_TEST
 
+static StructWithOffset* deviceStore3 = NULL;
+
+static void* dummy5(int num_devices)
+{
+    deviceStore3 = (StructWithOffset*)malloc(num_devices * sizeof(StructWithOffset));
+    memset(deviceStore3, 0, num_devices * sizeof(StructWithOffset));
+    return deviceStore3;
+}
+
+static int dummy6(void* memory)
+{
+    Atmotube_Device* d = (Atmotube_Device*)memory;
+    printf("Callback device: %s\n", d->device_name);
+    return 0;
+}
+
+START_TEST (test_plugin)
+{
+    char* fullName = "../test/config.txt";
+    atmotube_config_start(fullName);
+
+    size_t offset = offsetof(StructWithOffset, device);
+    printf("Using offset: %d\n", offset);
+    int ret = atmotube_config_load(dummy5, dummy6, sizeof(StructWithOffset), offset);
+    if (ret == 0)
+    {
+        atmotube_config_end();
+    }
+
+    ret = plugin_find("src/plugin");
+    ck_assert(ret == ATMOTUBE_RET_OK);
+
+    free(deviceStore3);
+    deviceStore3 = NULL;
+}
+END_TEST
+
 Suite* atmreader_suite(void)
 {
     Suite *s;
@@ -220,6 +258,7 @@ Suite* atmreader_suite(void)
     /* Core test case */
     tc_core = tcase_create("Core");
 
+    /*
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
@@ -229,7 +268,8 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_load_config_offset);
 
     tcase_add_test(tc_core, test_interval);
-
+    */
+    tcase_add_test(tc_core, test_plugin);
     //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 

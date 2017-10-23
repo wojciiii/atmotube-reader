@@ -8,7 +8,7 @@ link_directories(${GATTLIB_LIBDIR})
 
 add_executable(atmreadertest ${atmotube_test_SRCS})
 target_link_libraries(atmreadertest atmlib)
-target_link_libraries(atmreadertest ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} ${CHECK_LIBRARIES} pthread)
+target_link_libraries(atmreadertest ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} ${CHECK_LIBRARIES} pthread dl)
 
 #add_custom_command(
 #OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/config.txt

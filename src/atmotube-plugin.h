@@ -19,20 +19,38 @@
 
 #include "atmotube-output.h"
 
+typedef int (CB_get_plugin_type)(void);
+typedef int (CB_plugin_start)(AtmotubeOutput* o);
+typedef int (CB_temperature)(unsigned long ts, unsigned long value);
+typedef int (CB_humidity)(unsigned long ts, unsigned long value);
+typedef int (CB_voc)(unsigned long ts, float value);
+typedef int (CB_plugin_stop)(void);
+
+typedef struct
+{
+    CB_get_plugin_type *get_plugin_type;
+    CB_plugin_start *plugin_start;
+    CB_temperature *temperature;
+    CB_humidity* humidity;
+    CB_voc* voc;
+    CB_plugin_stop* plugin_stop;
+} AtmotubePlugin;
+
 /* Finding / loading */
-int plugin_find(void);
-int plugin_load(int type);
+int plugin_find(char* path);
+int plugin_load(char* path, int type);
+AtmotubePlugin* plugin_get(int type);
 
 int plugin_unload_all();
 
 /* Plugin interface */
 
+/* Get type of plugin. */
+int get_plugin_type(void);
 int plugin_start(AtmotubeOutput* o);
-
 void temperature(unsigned long ts, unsigned long value);
 void humidity(unsigned long ts, unsigned long value);
 void voc(unsigned long ts, float value);
-
 int plugin_stop(void);
 
 /* Plugin interface */

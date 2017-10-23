@@ -18,9 +18,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "atmotube_common.h"
+#include "atmotube-config.h"
 
 static bool started = false;
 static FILE* f = NULL;
+
+int get_plugin_type(void)
+{
+    return OUTPUT_FILE;
+}
 
 int plugin_start(AtmotubeOutput* o)
 {

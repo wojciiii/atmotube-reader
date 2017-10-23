@@ -9,10 +9,10 @@ add_library (atmlib atmotube.h atmotube-private.h atmotube.c atmotube-handler.c 
 
 add_executable(atmreader ${atmotube_reader_SRCS})
 target_link_libraries(atmreader atmlib)
-target_link_libraries(atmreader ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} pthread)
+target_link_libraries(atmreader ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} pthread dl)
 
 set(atmotube_find_SRCS atmotube-find.c)
 
 add_executable(atmfind ${atmotube_find_SRCS})
 target_link_libraries(atmfind atmlib)
-target_link_libraries(atmfind ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} pthread)
+target_link_libraries(atmfind ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} pthread dl)

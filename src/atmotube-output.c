@@ -36,7 +36,7 @@ int atmotube_create_outputs()
     int ret;
     PRINT_DEBUG("Devices: %d\n", glData.deviceConfigurationSize);
 
-    ret = plugin_find();
+    ret = plugin_find(NULL);
     if (ret == 0) {
 	PRINT_ERROR("No plugins found.\n");
 	return ATMOTUBE_RET_ERROR;
