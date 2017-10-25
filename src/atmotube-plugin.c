@@ -31,19 +31,61 @@
 #include "interval.h"
 #include "atmotube-private.h"
 
-#define GET_PLUGIN_TYPE "get_plugin_type"
+#define FUNCTION_GET_PLUGIN_TYPE "get_plugin_type"
+#define FUNCTION_PLUGIN_START "plugin_start"
+#define FUNCTION_PLUGIN_STOP "plugin_stop"
+#define FUNCTION_TEMPERATURE "temperature"
+#define FUNCTION_HUMIDITY "humidity"
+#define FUNCTION_VOC "voc"
 
 extern AtmotubeGlData glData;
-
-typedef struct
-{
-    int type;
-    void* handle;
-} PluginInfo;
 
 static GSList* plugins = NULL;
 
 static int numberOfPlugins = 0;
+
+#define LOAD_FUNCTION(ptr,function) *(void **) (&ptr) = dlsym(handle, function)
+#define CHECK_DLSYM_RESULT(ptr,function) if (ptr == NULL) { PRINT_ERROR("Unable to load %s\n", function); return ATMOTUBE_RET_ERROR; }
+
+int static plugin_assign(void* handle, AtmotubePlugin *dest) {
+
+    PRINT_DEBUG("plugin_assign\n");
+    
+    CB_get_plugin_type* get_plugin_type = NULL;
+    LOAD_FUNCTION(get_plugin_type, FUNCTION_GET_PLUGIN_TYPE);
+    CHECK_DLSYM_RESULT(get_plugin_type,FUNCTION_GET_PLUGIN_TYPE);
+
+    CB_plugin_start* plugin_start = NULL;
+    LOAD_FUNCTION(plugin_start, FUNCTION_PLUGIN_START);
+    CHECK_DLSYM_RESULT(plugin_start,FUNCTION_PLUGIN_START);
+
+    CB_temperature* temperature = NULL;
+    LOAD_FUNCTION(temperature, FUNCTION_TEMPERATURE);
+    CHECK_DLSYM_RESULT(temperature,FUNCTION_TEMPERATURE);
+
+    CB_humidity* humidity = NULL;
+    LOAD_FUNCTION(humidity, FUNCTION_HUMIDITY);
+    CHECK_DLSYM_RESULT(humidity,FUNCTION_HUMIDITY);
+
+    CB_voc* voc = NULL;
+    LOAD_FUNCTION(voc, FUNCTION_VOC);
+    CHECK_DLSYM_RESULT(voc, FUNCTION_VOC);
+
+    CB_plugin_stop* plugin_stop = NULL;
+    LOAD_FUNCTION(plugin_stop, FUNCTION_PLUGIN_STOP);
+    CHECK_DLSYM_RESULT(plugin_stop,FUNCTION_PLUGIN_STOP);
+
+    dest->get_plugin_type = get_plugin_type;
+    dest->plugin_start = plugin_start;
+    dest->temperature  = temperature;
+    dest->humidity     = humidity;
+    dest->voc          = voc;
+    dest->plugin_stop  = plugin_stop;
+
+    PRINT_DEBUG("All functions present\n");
+    
+    return ATMOTUBE_RET_OK;
+}
 
 int plugin_find(char* path)
 {
@@ -77,22 +119,19 @@ int plugin_find(char* path)
 	    }
 
 	    PRINT_DEBUG("Loading plugin: %s\n", fullname);
-	    
-	    int (*get_plugin_type)(void) = NULL;
 
-	    *(void **) (&get_plugin_type) = dlsym(libhandle, GET_PLUGIN_TYPE);
-
-	    if (get_plugin_type == NULL) {
+	    AtmotubePlugin *info = malloc(sizeof(AtmotubePlugin));
+	    if (plugin_assign(libhandle, info) != ATMOTUBE_RET_OK) {
+		dlclose(info->handle);
+		free(info);
+		info = NULL;
 		continue;
 	    }
-	    
-	    PRINT_DEBUG("Found function call: %s\n", GET_PLUGIN_TYPE);
-	    int type = get_plugin_type();
-	    PRINT_DEBUG("Found plugin type: %d\n", type);
 
-	    PluginInfo *info = malloc(sizeof(PluginInfo));
 	    info->handle = libhandle;
-	    info->type = type;
+	    PRINT_DEBUG("Found function call: %s\n", FUNCTION_GET_PLUGIN_TYPE);
+	    info->type = strdup(info->get_plugin_type());
+	    PRINT_DEBUG("Found plugin type: %s\n", info->type);
 
 	    plugins = g_slist_append(plugins, info);
 
@@ -109,18 +148,38 @@ int plugin_find(char* path)
     return ATMOTUBE_RET_ERROR;
 }
 
-int plugin_load(char* path, int type)
+AtmotubePlugin* plugin_get(const char* type)
 {
-    return ATMOTUBE_RET_ERROR;
-}
+    int i;
+    GSList *node;
 
-AtmotubePlugin* plugin_get(int type)
-{
+    for (i = 0; i < numberOfPlugins; i++) {
+	node = g_slist_nth(plugins, i);
+	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
+	if (strcmp(info->type, type) == 0) {
+	    return info;
+	}
+    }
+
     return NULL;
 }
 
 int plugin_unload_all()
 {
+    int i;
+    GSList *node;
+
+    for (i = 0; i < numberOfPlugins; i++) {
+	node = g_slist_nth(plugins, i);
+	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
+	dlclose(info->handle);
+	free(info);
+    }
+
+    g_slist_free(plugins);
+    numberOfPlugins = 0;
+    plugins = NULL;
+    
     return ATMOTUBE_RET_ERROR;
 }
 

@@ -62,9 +62,6 @@ char** atmotube_get_found_devices();
 // Read devices from a config file.
 int atmotube_add_devices_from_config(char* fullName);
 
-/* Create output plugins described by config. */
-int atmotube_create_outputs();
-
 // Add a device to the list of connectable Atmotube devices.
 //int atmotube_add_device(char* name, char* deviceAddress, char* description, int resolution);
 

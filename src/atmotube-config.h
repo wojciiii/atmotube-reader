@@ -19,10 +19,10 @@
 
 #include <stddef.h>
 
-#define OUTPUT_FILE 0x1
-#define OUTPUT_DB   0x2
+#define OUTPUT_FILE "file"
+#define OUTPUT_DB   "db"
 /* Some other plugin, not implemented yet: */
-#define OUTPUT_CUSTOM 0x3
+#define OUTPUT_CUSTOM "custom"
 
 typedef struct Atmotube_Device_S {
     /* Device: */
@@ -33,7 +33,7 @@ typedef struct Atmotube_Device_S {
     int device_resolution;
 
     /* Output: */
-    int output_type;
+    const char* output_type;
     const char* output_filename;
 } Atmotube_Device;
 

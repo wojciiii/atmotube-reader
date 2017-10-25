@@ -18,14 +18,16 @@
 #include "atmotube_common.h"
 #include "atmotube-config.h"
 
+static const char* type = "db";
+    
+const char* get_plugin_type(void)
+{
+    return type;
+}
+
 int plugin_start(AtmotubeOutput* o)
 {
     return -1;
-}
-
-int get_plugin_type(void)
-{
-    return OUTPUT_DB;
 }
 
 int plugin_stop(void)

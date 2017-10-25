@@ -20,6 +20,8 @@
 #include "atmotube.h"
 #include "atmotube-config.h"
 #include "atmotube-output.h"
+#include "atmotube-plugin-if.h"
+#include "atmotube-plugin.h"
 #include "interval.h"
 
 #define NUM_UUIDS 4
@@ -37,6 +39,7 @@ typedef struct
     bool registred;
 
     AtmotubeOutput* output;
+    AtmotubePlugin* plugin;
 } AtmotubeData;
 
 typedef struct

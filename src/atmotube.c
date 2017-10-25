@@ -245,6 +245,7 @@ int atmotube_add_devices_from_config(char* fullName)
       d->connected  = 0;
       d->registred  = 0;
       d->output     = NULL;
+      d->plugin     = NULL;
       dumpAtmotubeData(d);
       glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
   }

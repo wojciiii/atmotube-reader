@@ -19,10 +19,8 @@ static cfg_opt_t device_opts[] = {
     CFG_END()
 };
 
-static int validate_output_type(cfg_t *cfg, cfg_opt_t *opt, const char *value, void *result);
-
 static cfg_opt_t output_opts[] = {
-    CFG_INT_CB("type", 0, CFGF_NONE, &validate_output_type),
+    CFG_STR("type", 0, CFGF_NONE),
     CFG_STR("source", 0, CFGF_NONE),
     CFG_STR("filename", 0, CFGF_NONE),
     CFG_END()
@@ -48,16 +46,11 @@ static int validate_output(cfg_t *cfg, cfg_opt_t *opt)
 	    return ATMOTUBE_RET_ERROR;
 	}
 
-	switch (cfg_getint(sec, "type")) {
-	case OUTPUT_FILE:
-	case OUTPUT_DB:
-	    break;
-	default:
+	if (cfg_getstr(sec, "type") == 0) {
 	    cfg_error(cfg, "type option must be set for output '%s'", cfg_title(sec));
 	    return ATMOTUBE_RET_ERROR;
 	}
-	
-	
+
 	if (cfg_getstr(sec, "filename") == 0) {
 	    cfg_error(cfg, "address option must be set for output '%s'", cfg_title(sec));
 	    return ATMOTUBE_RET_ERROR;
@@ -70,7 +63,7 @@ static int validate_output(cfg_t *cfg, cfg_opt_t *opt)
 
 	return ATMOTUBE_RET_OK;
 }
-
+/*
 static int validate_output_type(cfg_t *cfg, cfg_opt_t *opt, const char *value, void *result)
 {
     if(strcmp(value, "file") == 0)
@@ -81,12 +74,11 @@ static int validate_output_type(cfg_t *cfg, cfg_opt_t *opt, const char *value, v
 	*(int *)result = OUTPUT_CUSTOM;
     else
 	{
-	    /* cfg_error(cfg, "Invalid action value '%s'", value); */
 	    return -1;
 	}
     return 0;
 }
-
+*/
 static int validate_device(cfg_t *cfg, cfg_opt_t *opt)
 {
 	cfg_t *sec = cfg_opt_getnsec(opt, cfg_opt_size(opt) - 1);
@@ -183,7 +175,6 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
     int i = 0;
     int j = 0;
     void* memory = NULL;
-    Atmotube_Device* devices = NULL;
     int deviceId = 0;
     
     cfg = cfg_init(opts, CFGF_NOCASE);
@@ -222,7 +213,7 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	device->device_name = NULL;
 	device->device_address = NULL;
 	device->device_description = NULL;
-	device->device_resolution = NULL;
+	device->device_resolution = 0;
 	device->output_type = -1;
 	device->output_filename = NULL;
     }
@@ -253,7 +244,7 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	    Atmotube_Device* device = get_ptr(memory, j, element_size, offset);
 	    if (strcmp(device->device_name, src) == 0) {
 		PRINT_DEBUG("Found device %s for source %s\n", device->device_name, src);
-		device->output_type = cfg_getint(cfg_output, "type");
+		device->output_type = strdup(cfg_getstr(cfg_output, "type"));
 		device->output_filename = strdup(cfg_getstr(cfg_output, "filename"));
 		found = true;
 	    }

@@ -245,6 +245,15 @@ START_TEST (test_plugin)
 
     free(deviceStore3);
     deviceStore3 = NULL;
+
+    AtmotubePlugin* o = plugin_get(OUTPUT_FILE);
+    ck_assert(o != NULL);
+    o = plugin_get(OUTPUT_DB);
+    ck_assert(o != NULL);
+    o = plugin_get(OUTPUT_CUSTOM);
+    ck_assert(o == NULL);
+    
+    plugin_unload_all();
 }
 END_TEST
 

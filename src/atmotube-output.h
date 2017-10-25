@@ -17,12 +17,8 @@
 #ifndef ATMOTUBE_OUTPUT_H
 #define ATMOTUBE_OUTPUT_H
 
-typedef struct
-{
-    int type;
-    char* filename;
-    void* state;
-} AtmotubeOutput;
+/* Create output plugins described by config. */
+int atmotube_create_outputs();
 
 void output_temperature(unsigned long ts, unsigned long value, void* data_ptr);
 void output_humidity(unsigned long ts, unsigned long value, void* data_ptr);

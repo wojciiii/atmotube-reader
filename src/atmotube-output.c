@@ -46,30 +46,15 @@ int atmotube_create_outputs()
 	AtmotubeData* d = glData.deviceConfiguration + i;
 	
 	d->output = (AtmotubeOutput*)malloc(sizeof(AtmotubeOutput));
-	
-	switch (d->device.output_type) {
-	case OUTPUT_FILE: {
-	    PRINT_DEBUG("Creating output: FILE\n");
-	    /* Find and load so file: */
 
-	    /* Assign fps: */
-	    
-	    //int output_type;
-	    //    const char* output_filename;
-	    break;
-	}
-	case OUTPUT_DB: {
-	    PRINT_DEBUG("Creating output: DB\n");
-	    break;
-	}
-	case OUTPUT_CUSTOM: {
-	    PRINT_DEBUG("Creating output: custom\n");
-	    break;
-	}
+	PRINT_DEBUG("Creating output: %s\n", d->device.output_type);
+	AtmotubePlugin *op = plugin_get(d->device.output_type);
+	if (op == NULL) {
+	    return ATMOTUBE_RET_ERROR;
 	}
     }
 
-    return -1;
+    return ATMOTUBE_RET_OK;
 }
 
 //https://eli.thegreenplace.net/2012/08/24/plugins-in-c

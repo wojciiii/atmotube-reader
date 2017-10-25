@@ -22,10 +22,11 @@
 
 static bool started = false;
 static FILE* f = NULL;
-
-int get_plugin_type(void)
+static const char* type = "file";
+    
+const char* get_plugin_type(void)
 {
-    return OUTPUT_FILE;
+    return type;
 }
 
 int plugin_start(AtmotubeOutput* o)

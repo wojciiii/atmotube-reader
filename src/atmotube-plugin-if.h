@@ -14,10 +14,26 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DB_H
-#define DB_H
+#ifndef ATMOTUBE_PLUGIN_IF_H
+#define ATMOTUBE_PLUGIN_IF_H
 
-#include "atmotube-plugin-if.h"
+/* Plugin interface */
 
-#endif /* DB_H */
+typedef struct
+{
+    int type;
+    char* filename;
+    void* state;
+} AtmotubeOutput;
 
+/* Get type of plugin. */
+const char* get_plugin_type(void);
+int plugin_start(AtmotubeOutput* o);
+void temperature(unsigned long ts, unsigned long value);
+void humidity(unsigned long ts, unsigned long value);
+void voc(unsigned long ts, float value);
+int plugin_stop(void);
+
+/* Plugin interface */
+
+#endif /* ATMOTUBE_PLUGIN_IF_H */
