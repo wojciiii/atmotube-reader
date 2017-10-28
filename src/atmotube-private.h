@@ -55,7 +55,7 @@ typedef struct
     /* List of pointers to device configurations. */
     AtmotubeData* deviceConfiguration;
 
-    
+    const char* plugin_path;
 } AtmotubeGlData;
 
 extern AtmotubeGlData glData;

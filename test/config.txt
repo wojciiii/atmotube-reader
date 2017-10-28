@@ -36,3 +36,7 @@ output custom_third {
     type = "custom"
     filename = "/tmp/atmotube_custom"
 }
+
+global {
+    plugin_dir = "src/plugin"
+}

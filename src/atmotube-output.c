@@ -55,9 +55,9 @@ int atmotube_create_outputs()
 	return ATMOTUBE_RET_ERROR;
     }
     
-    ret = atmotube_plugin_find(NULL);
-    if (ret == 0) {
-	PRINT_ERROR("No plugins found.\n");
+    ret = atmotube_plugin_find(glData.plugin_path);
+    if (ret =! ATMOTUBE_RET_ERROR) {
+	PRINT_ERROR("atmotube_create_outputs, no plugins found.\n");
 	return ATMOTUBE_RET_ERROR;
     }
 

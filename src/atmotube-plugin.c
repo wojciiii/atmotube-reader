@@ -90,7 +90,7 @@ int static plugin_assign(void* handle, AtmotubePlugin *dest) {
 int atmotube_plugin_find(const char* path)
 {
     if (path == NULL) {
-	// TODO: implement this.
+	PRINT_ERROR("atmotube_plugin_find, invalid path\n");
 	return ATMOTUBE_RET_ERROR;
     }
     
@@ -159,10 +159,11 @@ AtmotubePlugin* atmotube_plugin_get(const char* type)
     }
     
     for (i = 0; i < numberOfPlugins; i++) {
-	PRINT_DEBUG("Plugin %d: \n", i);
+	//PRINT_DEBUG("Plugin %d: %s\n", i, );
 	node = g_slist_nth(plugins, i);
 	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
 	if (strcmp(info->type, type) == 0) {
+	    PRINT_DEBUG("Found plugin %d: %s\n", i, info->type);
 	    return info;
 	}
     }

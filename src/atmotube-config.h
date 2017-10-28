@@ -39,11 +39,14 @@ typedef struct Atmotube_Device_S {
 
 void atmotube_config_start(const char* fullName);
 
+typedef void (setPluginPathCB)(const char* plugin_path);
 typedef int (deviceCB)(void* memory);
 typedef void* (NumDevicesCB)(int numDevices);
 
 /* offset - Atmotube_Device offset in the provided memory which is (n x element_size) size bytes. */
-int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceCb, size_t element_size, size_t offset);
+int atmotube_config_load(setPluginPathCB pluginPathCb,
+			 NumDevicesCB numDevicesCb,
+			 deviceCB deviceCb, size_t element_size, size_t offset);
 
 void atmotube_config_end();
 

@@ -62,12 +62,6 @@ int main(int argc, char *argv[]) {
 	return 1;
     }
 
-    ret = atmotube_plugin_find(NULL);
-    if (ret != ATMOTUBE_RET_OK) {
-	atmotube_end();
-	return 1;
-    }
-
     ret = atmotube_create_outputs();
     if (ret != ATMOTUBE_RET_OK) {
 	printf("Unable to create output(s).\n");

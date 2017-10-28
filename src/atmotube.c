@@ -54,6 +54,7 @@ static void init_gl_data(AtmotubeGlData *ptr)
 
   ptr->deviceConfigurationSize = 0;
   ptr->deviceConfiguration = NULL;
+  ptr->plugin_path = NULL;
 }
 
 void atmotube_start()
@@ -230,10 +231,18 @@ static int atmotube_add_device(void* m)
     return ATMOTUBE_RET_OK;
 }
 
+static void atmotube_set_plugin_path(const char* path)
+{
+    PRINT_DEBUG("Using plugin path: %s\n", path);
+    glData.plugin_path = strdup(path);
+}
+
 int atmotube_add_devices_from_config(const char* fullName)
 {
   atmotube_config_start(fullName);
-  int ret = atmotube_config_load(atmotube_num_devices, atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
+  int ret = atmotube_config_load(atmotube_set_plugin_path,
+				 atmotube_num_devices,
+				 atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
   // TODO: error checking!
   int i = 0;
 
@@ -249,7 +258,16 @@ int atmotube_add_devices_from_config(const char* fullName)
       dumpAtmotubeData(d);
       glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
   }
-  
+
+  /*
+  ret = atmotube_plugin_find(plugin_path);
+  if (ret != ATMOTUBE_RET_OK) {
+      // TODO: clean up any allocated data.
+      PRINT_ERROR("atmotube_plugin_find failed\n");
+      return ATMOTUBE_RET_ERROR;
+  }
+  */
+
   atmotube_config_end();
 
   return ret;

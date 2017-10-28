@@ -26,9 +26,15 @@ static cfg_opt_t output_opts[] = {
     CFG_END()
 };
 
+static cfg_opt_t global_opts[] = {
+    CFG_STR("plugin_dir", 0, CFGF_NONE),
+    CFG_END()
+};
+
 static cfg_opt_t opts[] = {
     CFG_SEC("device", device_opts, CFGF_MULTI | CFGF_TITLE),
     CFG_SEC("output", output_opts, CFGF_MULTI | CFGF_TITLE),
+    CFG_SEC("global", global_opts, CFGF_NONE),
     CFG_END()
 };
 
@@ -36,6 +42,23 @@ static int numDevices = 0;
 static int numOutputs = 0;
 
 static char* configFilename;
+
+static int validate_global(cfg_t *cfg, cfg_opt_t *opt)
+{
+	cfg_t *sec = cfg_opt_getnsec(opt, cfg_opt_size(opt) - 1);
+
+	if (!sec) {
+	    cfg_error(cfg, "section is NULL!?");
+	    return ATMOTUBE_RET_ERROR;
+	}
+
+	if (cfg_getstr(sec, "plugin_dir") == 0) {
+	    cfg_error(cfg, "plugin_dir option must be set for section '%s'", cfg_title(sec));
+	    return ATMOTUBE_RET_ERROR;
+	}
+
+	return ATMOTUBE_RET_OK;
+}
 
 static int validate_output(cfg_t *cfg, cfg_opt_t *opt)
 {
@@ -170,8 +193,9 @@ static Atmotube_Device* get_ptr(void *src, int number, size_t element_size, size
 
 static const char *UNDEF_OUTPUT_TYPE="undefined_output_type";
 
-int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
-			 size_t element_size, size_t offset)
+int atmotube_config_load(setPluginPathCB pluginPathCb,
+			 NumDevicesCB numDevicesCb,
+			 deviceCB deviceFb, size_t element_size, size_t offset)
 {
     int ret = 0;
     int i = 0;
@@ -182,6 +206,8 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
     cfg = cfg_init(opts, CFGF_NOCASE);
     cfg_set_validate_func(cfg, "device", &validate_device);
     cfg_set_validate_func(cfg, "output", &validate_output);
+
+    cfg_set_validate_func(cfg, "global", &validate_global);
     
     ret = cfg_parse(cfg, configFilename);
     PRINT_DEBUG("Load: cfg_parse, ret=%d\n", ret);
@@ -190,7 +216,19 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	cfg_free(cfg);
 	return ATMOTUBE_RET_ERROR;
     }
-    
+
+    cfg_t *cfg_global = cfg_getnsec(cfg, "global", 0);
+    const char* path = cfg_getstr(cfg_global, "plugin_dir");
+
+    if (path == NULL) {
+	PRINT_DEBUG("Plugin path is not set\n");
+	
+	cfg_free(cfg);
+	return ATMOTUBE_RET_ERROR;
+    }
+
+    pluginPathCb(path);
+
     numDevices = cfg_size(cfg, "device");
     PRINT_DEBUG("Load: %d device(s) present\n", numDevices);
     
