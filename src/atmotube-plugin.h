@@ -41,9 +41,8 @@ typedef struct
 } AtmotubePlugin;
 
 /* Finding / loading */
-int plugin_find(char* path);
-AtmotubePlugin* plugin_get(const char* type);
+AtmotubePlugin* atmotube_plugin_get(const char* type);
 
-int plugin_unload_all();
+int atmotube_plugin_unload_all();
 
 #endif /* ATMOTUBE_PLUGIN_H */

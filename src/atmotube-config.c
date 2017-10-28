@@ -116,7 +116,7 @@ static int validate_device(cfg_t *cfg, cfg_opt_t *opt)
 	return ATMOTUBE_RET_OK;
 }
 
-void atmotube_config_start(char* fullName)
+void atmotube_config_start(const char* fullName)
 {
 	if (fullName != NULL)
 	{
@@ -142,7 +142,7 @@ static void dumpDevice(Atmotube_Device* device)
     PRINT_DEBUG("  address = %s\n", device->device_address);
     PRINT_DEBUG("  description = %s\n", device->device_description);
     PRINT_DEBUG("  resolution = %d\n", device->device_resolution);
-    PRINT_DEBUG("  output type = %d\n", device->output_type);
+    PRINT_DEBUG("  output type = %s\n", device->output_type);
     PRINT_DEBUG("  filename = %s\n", device->output_filename);
 }
 
@@ -167,6 +167,8 @@ static Atmotube_Device* get_ptr(void *src, int number, size_t element_size, size
     p += offset;
     return (Atmotube_Device*)p;
 }
+
+static const char *UNDEF_OUTPUT_TYPE="undefined_output_type";
 
 int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 			 size_t element_size, size_t offset)
@@ -213,8 +215,8 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
 	device->device_name = NULL;
 	device->device_address = NULL;
 	device->device_description = NULL;
-	device->device_resolution = 0;
-	device->output_type = -1;
+        device->device_resolution = 0;
+        device->output_type = UNDEF_OUTPUT_TYPE;
 	device->output_filename = NULL;
     }
 	
@@ -260,7 +262,7 @@ int atmotube_config_load(NumDevicesCB numDevicesCb, deviceCB deviceFb,
     for (i = 0; i < numDevices; i++) {
 	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
 
-	if (device->output_type == -1) {
+	if (device->output_type == UNDEF_OUTPUT_TYPE) {
 	    printf("Device %s needs an output. Can't continue.\n", device->device_name);
 	    cfg_free(cfg);
 	    return ATMOTUBE_RET_ERROR;

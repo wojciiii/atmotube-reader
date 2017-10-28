@@ -230,7 +230,7 @@ static int atmotube_add_device(void* m)
     return ATMOTUBE_RET_OK;
 }
 
-int atmotube_add_devices_from_config(char* fullName)
+int atmotube_add_devices_from_config(const char* fullName)
 {
   atmotube_config_start(fullName);
   int ret = atmotube_config_load(atmotube_num_devices, atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));

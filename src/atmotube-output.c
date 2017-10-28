@@ -30,28 +30,49 @@
 
 extern AtmotubeGlData glData;
 
+static void clear_outputs()
+{
+    int i;
+    
+    for (i = 0; i < glData.deviceConfigurationSize; i++) {
+	AtmotubeData* d = glData.deviceConfiguration + i;
+	
+	if (d->output != NULL) {
+	    free(d->output);
+	    d->output = NULL;
+	}
+    }
+}
+
 int atmotube_create_outputs()
 {
     int i;
     int ret;
     PRINT_DEBUG("Devices: %d\n", glData.deviceConfigurationSize);
 
-    ret = plugin_find(NULL);
+    if (glData.deviceConfigurationSize == 0) {
+	PRINT_ERROR("No devices found.\n");
+	return ATMOTUBE_RET_ERROR;
+    }
+    
+    ret = atmotube_plugin_find(NULL);
     if (ret == 0) {
 	PRINT_ERROR("No plugins found.\n");
 	return ATMOTUBE_RET_ERROR;
     }
-    
+
     for (i = 0; i < glData.deviceConfigurationSize; i++) {
 	AtmotubeData* d = glData.deviceConfiguration + i;
-	
-	d->output = (AtmotubeOutput*)malloc(sizeof(AtmotubeOutput));
+
+	d->output = NULL;
 
 	PRINT_DEBUG("Creating output: %s\n", d->device.output_type);
-	AtmotubePlugin *op = plugin_get(d->device.output_type);
+	AtmotubePlugin *op = atmotube_plugin_get(d->device.output_type);
 	if (op == NULL) {
+	    clear_outputs();
 	    return ATMOTUBE_RET_ERROR;
 	}
+	d->output = (AtmotubeOutput*)malloc(sizeof(AtmotubeOutput));
     }
 
     return ATMOTUBE_RET_OK;

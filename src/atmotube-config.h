@@ -37,7 +37,7 @@ typedef struct Atmotube_Device_S {
     const char* output_filename;
 } Atmotube_Device;
 
-void atmotube_config_start(char* fullName);
+void atmotube_config_start(const char* fullName);
 
 typedef int (deviceCB)(void* memory);
 typedef void* (NumDevicesCB)(int numDevices);

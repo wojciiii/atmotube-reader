@@ -87,7 +87,7 @@ int static plugin_assign(void* handle, AtmotubePlugin *dest) {
     return ATMOTUBE_RET_OK;
 }
 
-int plugin_find(char* path)
+int atmotube_plugin_find(const char* path)
 {
     if (path == NULL) {
 	// TODO: implement this.
@@ -148,12 +148,18 @@ int plugin_find(char* path)
     return ATMOTUBE_RET_ERROR;
 }
 
-AtmotubePlugin* plugin_get(const char* type)
+AtmotubePlugin* atmotube_plugin_get(const char* type)
 {
     int i;
     GSList *node;
 
+    if (numberOfPlugins == 0) {
+	PRINT_ERROR("No plugins loaded.\n");
+	return NULL;
+    }
+    
     for (i = 0; i < numberOfPlugins; i++) {
+	PRINT_DEBUG("Plugin %d: \n", i);
 	node = g_slist_nth(plugins, i);
 	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
 	if (strcmp(info->type, type) == 0) {
@@ -161,10 +167,11 @@ AtmotubePlugin* plugin_get(const char* type)
 	}
     }
 
+    PRINT_ERROR("Plugin with type '%s' not found\n", type);
     return NULL;
 }
 
-int plugin_unload_all()
+int atmotube_plugin_unload_all()
 {
     int i;
     GSList *node;

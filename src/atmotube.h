@@ -60,7 +60,10 @@ int atmotube_num_found_devices();
 char** atmotube_get_found_devices();
 
 // Read devices from a config file.
-int atmotube_add_devices_from_config(char* fullName);
+int atmotube_add_devices_from_config(const char* fullName);
+
+/* Find atmotube plugins. */
+int atmotube_plugin_find(const char* path);
 
 // Add a device to the list of connectable Atmotube devices.
 //int atmotube_add_device(char* name, char* deviceAddress, char* description, int resolution);

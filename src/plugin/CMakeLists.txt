@@ -9,6 +9,7 @@ include_directories(${SQLITE3_INCLUDE_DIRS} ../)
 
 add_library (file SHARED file.h file.c)
 add_library (db SHARED db.h db.c)
+add_library (custom SHARED custom.h custom.c)
 
 target_link_libraries (db ${SQLITE3_LIBRARIES})
 
