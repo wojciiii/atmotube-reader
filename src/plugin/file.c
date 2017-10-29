@@ -31,14 +31,21 @@ const char* get_plugin_type(void)
 
 int plugin_start(AtmotubeOutput* o)
 {
+    if (o->filename == NULL) {
+	PRINT_ERROR("plugin_start, no filename provided\n");
+	return ATMOTUBE_RET_ERROR;
+    }
+    
+    PRINT_DEBUG("plugin_start, opening file %s for appending\n", o->filename);
+    
     f = fopen(o->filename, "a");
     if (f == NULL) {
-	PRINT_ERROR("Unable to open file %s for appending", o->filename);
+	PRINT_ERROR("plugin_start, unable to open file %s for appending\n", o->filename);
 	return ATMOTUBE_RET_ERROR;
     }
     
     started = true;
-    return -1;
+    return ATMOTUBE_RET_OK;
 }
 
 int plugin_stop(void)
@@ -49,7 +56,7 @@ int plugin_stop(void)
 	return ATMOTUBE_RET_OK;
     }
 
-    PRINT_ERROR("Invalid state");
+    PRINT_ERROR("plugin_stop, invalid state\n");
     return ATMOTUBE_RET_ERROR;
 }
 

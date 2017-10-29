@@ -22,19 +22,19 @@ device three {
 output file_one {
     source = "one"
     type = "file"
-    filename = "/tmp/atmotube_one.txt"
+    filename = "test/atmotube_one.txt"
 }
 
 output db_one {
     source = "two"
     type = "db"
-    filename = "/tmp/atmotube_one.db"
+    filename = "test/atmotube_one.db"
 }
 
 output custom_third {
     source = "three"
     type = "custom"
-    filename = "/tmp/atmotube_custom"
+    filename = "test/atmotube_custom"
 }
 
 global {

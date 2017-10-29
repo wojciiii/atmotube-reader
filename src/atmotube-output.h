@@ -20,6 +20,9 @@
 /* Create output plugins described by config. */
 int atmotube_create_outputs();
 
+/* Deallocate any plugins. */
+int atmotube_destroy_outputs();
+
 void output_temperature(unsigned long ts, unsigned long value, void* data_ptr);
 void output_humidity(unsigned long ts, unsigned long value, void* data_ptr);
 void output_voc(unsigned long ts, float value, void* data_ptr);

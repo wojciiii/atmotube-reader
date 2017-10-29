@@ -56,7 +56,7 @@ int atmotube_create_outputs()
     }
     
     ret = atmotube_plugin_find(glData.plugin_path);
-    if (ret =! ATMOTUBE_RET_ERROR) {
+    if (ret != ATMOTUBE_RET_ERROR) {
 	PRINT_ERROR("atmotube_create_outputs, no plugins found.\n");
 	return ATMOTUBE_RET_ERROR;
     }
@@ -73,30 +73,39 @@ int atmotube_create_outputs()
 	    return ATMOTUBE_RET_ERROR;
 	}
 	d->output = (AtmotubeOutput*)malloc(sizeof(AtmotubeOutput));
+
+	d->output->filename = d->device.output_filename;
+	d->output->state = NULL;
+
+	d->plugin = op;
+	d->plugin->plugin_start(d->output);
     }
 
     return ATMOTUBE_RET_OK;
 }
 
-//https://eli.thegreenplace.net/2012/08/24/plugins-in-c
+int atmotube_destroy_outputs()
+{
+    return ATMOTUBE_RET_ERROR;
+}
 
 void output_temperature(unsigned long ts, unsigned long value, void* data_ptr)
 {
     AtmotubeData* d = (AtmotubeData*)data_ptr;
-    AtmotubeOutput* o = d->output;
-    //o.temperature(ts, value);
+    AtmotubePlugin* plugin = d->plugin;
+    plugin->temperature(ts, value);
 }
 
 void output_humidity(unsigned long ts, unsigned long value, void* data_ptr)
 {
     AtmotubeData* d = (AtmotubeData*)data_ptr;
-    AtmotubeOutput* o = d->output;
-    //o.humidity(ts, value);
+    AtmotubePlugin* plugin = d->plugin;
+    plugin->humidity(ts, value);
 }
 
 void output_voc(unsigned long ts, float value, void* data_ptr)
 {
     AtmotubeData* d = (AtmotubeData*)data_ptr;
-    AtmotubeOutput* o = d->output;
-    //o.voc(ts, value);
+    AtmotubePlugin* plugin = d->plugin;
+    plugin->voc(ts, value);
 }

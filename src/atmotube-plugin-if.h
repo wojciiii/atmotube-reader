@@ -21,8 +21,8 @@
 
 typedef struct
 {
-    int type;
-    char* filename;
+    /* const char* type; */
+    const char* filename;
     void* state;
 } AtmotubeOutput;
 

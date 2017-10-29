@@ -297,6 +297,31 @@ START_TEST (test_output)
 }
 END_TEST
 
+START_TEST (test_output_file)
+{
+    const char* fullName = "../test/config.txt";
+    int ret;
+    
+    ret = atmotube_add_devices_from_config(fullName);
+    if (ret != ATMOTUBE_RET_OK) {
+	printf("Unable to add devices from config.\n");
+        atmotube_end();
+	return;
+    }
+
+    ret = atmotube_create_outputs();
+    if (ret != ATMOTUBE_RET_OK) {
+	printf("Unable to create output(s).\n");
+        atmotube_end();
+    }
+
+    /* Test that writting to an output plugin works and it generated
+     * the expected output.
+     */
+    
+}
+END_TEST
+
 Suite* atmreader_suite(void)
 {
     Suite *s;
@@ -306,7 +331,7 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
-
+    /*
     tcase_add_test(tc_core, test_interval);
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
@@ -315,7 +340,9 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_load_config);
     tcase_add_test(tc_core, test_load_config_offset);
     tcase_add_test(tc_core, test_plugin);
+    */
     tcase_add_test(tc_core, test_output);
+    tcase_add_test(tc_core, test_output_file);
     //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 
