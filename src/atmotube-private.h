@@ -24,6 +24,9 @@
 #include "atmotube-plugin.h"
 #include "interval.h"
 
+#include <stdbool.h>
+#include <glib.h>
+
 #define NUM_UUIDS 4
 
 /* Global data used internally. */

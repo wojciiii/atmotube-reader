@@ -21,6 +21,7 @@
 #include <atmotube.h>
 #include <atmotube-config.h>
 #include <atmotube-plugin.h>
+#include <atmotube-private.h>
 #include <interval.h>
 #include <unistd.h>
 
@@ -32,19 +33,23 @@ static void set_plugin_path(const char* path)
     
     plugin_path = strdup(path);
 }
-
+/*
 typedef struct
 {
     // ..
     char* deviceAddress;
     // ..
 } AtmotubeData;
+*/
 
 void test_handle_notification(enum CHARACTER_ID id, uint8_t* data, size_t data_length)
 {
     uuid_t* uuid = atmotube_getuuid(id);
     AtmotubeData d;
-    d.deviceAddress = "00:00:00:00:00";
+
+    d.device.device_address = "00:00:00:00:00";
+	
+    //d.deviceAddress = "00:00:00:00:00";
     void* user_data = &d;
 
     atmotube_handle_notification(uuid, data, data_length, user_data);
@@ -279,7 +284,7 @@ START_TEST (test_output)
     const char* fullName = "../test/config.txt";
     int ret;
     
-    //atmotube_start();
+    atmotube_start();
 
     ret = atmotube_add_devices_from_config(fullName);
     if (ret != ATMOTUBE_RET_OK) {
@@ -301,8 +306,13 @@ START_TEST (test_output_file)
 {
     const char* fullName = "../test/config.txt";
     int ret;
-    
+
+    atmotube_start();
+
     ret = atmotube_add_devices_from_config(fullName);
+
+    ck_assert(ret == ATMOTUBE_RET_OK);
+	
     if (ret != ATMOTUBE_RET_OK) {
 	printf("Unable to add devices from config.\n");
         atmotube_end();
@@ -310,15 +320,52 @@ START_TEST (test_output_file)
     }
 
     ret = atmotube_create_outputs();
+
+    ck_assert(ret == ATMOTUBE_RET_OK);
+
     if (ret != ATMOTUBE_RET_OK) {
 	printf("Unable to create output(s).\n");
         atmotube_end();
+	return;
     }
 
     /* Test that writting to an output plugin works and it generated
      * the expected output.
      */
+
+    extern AtmotubeGlData glData;
+
+    printf("Num %d\n", glData.deviceConfigurationSize);
     
+    AtmotubeData* target = NULL;
+    int i;
+    for (i = 0; i < glData.deviceConfigurationSize; i++) {
+	printf("Data %d\n", i);
+	
+	AtmotubeData* d = glData.deviceConfiguration + i;
+	AtmotubePlugin* plugin = d->plugin;
+	if (plugin != NULL) {
+	    if (strcmp(plugin->type, OUTPUT_FILE) == 0) {
+		printf("Found it\n");
+		target = d;
+		break;
+	    }
+	}
+    }
+    
+    ck_assert(target != NULL);
+    
+    unsigned long ts = 0;
+    unsigned long value = 100UL;
+    void* data_ptr = target;
+
+    for (i = 0; i < 1024; i++) {
+	output_temperature(ts+i, value+i, data_ptr);
+	output_humidity(ts+i, value+i, data_ptr);
+	output_voc(ts+i, value+i+0.1f, data_ptr);
+    }
+
+    atmotube_end();
 }
 END_TEST
 
@@ -331,7 +378,6 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
-    /*
     tcase_add_test(tc_core, test_interval);
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
@@ -340,10 +386,8 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_load_config);
     tcase_add_test(tc_core, test_load_config_offset);
     tcase_add_test(tc_core, test_plugin);
-    */
     tcase_add_test(tc_core, test_output);
     tcase_add_test(tc_core, test_output_file);
-    //tcase_add_test(tc_core, test_name);
     suite_add_tcase(s, tc_core);
 
     return s;

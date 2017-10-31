@@ -63,20 +63,20 @@ int plugin_stop(void)
 void temperature(unsigned long ts, unsigned long value)
 {
     if (started) {
-	fprintf(f, "%lu,temperature,%lu", ts, value);
+	fprintf(f, "%lu,temperature,%lu\n", ts, value);
     }
 }
 
 void humidity(unsigned long ts, unsigned long value)
 {
     if (started) {
-	fprintf(f, "%lu,humidity,%lu", ts, value);
+	fprintf(f, "%lu,humidity,%lu\n", ts, value);
     }
 }
 
 void voc(unsigned long ts, float value)
 {
     if (started) {
-	fprintf(f, "%lu,voc,%f", ts, value);
+	fprintf(f, "%lu,voc,%f\n", ts, value);
     }
 }

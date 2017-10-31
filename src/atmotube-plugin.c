@@ -142,9 +142,11 @@ int atmotube_plugin_find(const char* path)
     closedir(dir);
 
     if (numberOfPlugins > 0) {
+	PRINT_DEBUG("numberOfPlugins=%d\n", numberOfPlugins);
 	return ATMOTUBE_RET_OK;
     }
-    
+
+    PRINT_ERROR("No plugins, numberOfPlugins=%d\n", numberOfPlugins);
     return ATMOTUBE_RET_ERROR;
 }
 

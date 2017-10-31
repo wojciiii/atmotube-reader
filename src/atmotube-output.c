@@ -54,9 +54,11 @@ int atmotube_create_outputs()
 	PRINT_ERROR("No devices found.\n");
 	return ATMOTUBE_RET_ERROR;
     }
+
+    PRINT_DEBUG("Using plugin path: %s\n", glData.plugin_path);
     
     ret = atmotube_plugin_find(glData.plugin_path);
-    if (ret != ATMOTUBE_RET_ERROR) {
+    if (ret != ATMOTUBE_RET_OK) {
 	PRINT_ERROR("atmotube_create_outputs, no plugins found.\n");
 	return ATMOTUBE_RET_ERROR;
     }
