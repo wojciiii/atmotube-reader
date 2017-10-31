@@ -17,3 +17,10 @@ of my testing environment.
 Example file: test/config.txt
 
 The application uses: ~/.atmotube/config.
+
+# TODO
+
+- Write more unittests.
+- Implement DB plugin using some simple database which can be accessed from JS.
+- Clean up the API.
+- Implement public vs private API (for internal use and for testing).
