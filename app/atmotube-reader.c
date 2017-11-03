@@ -23,7 +23,7 @@
 
 #include "gattlib.h"
 
-#include "atmotube.h"
+#include <atmotube.h>
 
 static GMainLoop *loop = NULL;
 static bool aborted    = false;
