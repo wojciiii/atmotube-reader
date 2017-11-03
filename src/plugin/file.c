@@ -62,21 +62,30 @@ int plugin_stop(void)
 
 void temperature(unsigned long ts, unsigned long value)
 {
+    PRINT_DEBUG("Writing temperature to file(%u): %lu,%lu\n", started, ts, value);
+
     if (started) {
 	fprintf(f, "%lu,temperature,%lu\n", ts, value);
+	fflush(f);
     }
 }
 
 void humidity(unsigned long ts, unsigned long value)
 {
+    PRINT_DEBUG("Writing humidity to file(%u): %lu,%lu\n", started, ts, value);
+
     if (started) {
 	fprintf(f, "%lu,humidity,%lu\n", ts, value);
+	fflush(f);
     }
 }
 
 void voc(unsigned long ts, float value)
 {
+    PRINT_DEBUG("Writing voc to file(%u): %lu,%f\n", started, ts, value);
+
     if (started) {
 	fprintf(f, "%lu,voc,%f\n", ts, value);
+	fflush(f);
     }
 }

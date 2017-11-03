@@ -263,6 +263,8 @@ static void interval_log_impl(gpointer data,
 		i->times = 0;
 		if (i->callback.callback_set) {
 		    i->callback.u.ulong_cb(ts, i->current.ul, i->callback.callback_data_ptr);
+		} else {
+		    PRINT_DEBUG("Callback(%s/%s) not set\n", p->fmt, p->label);
 		}
 	    }
 	    /*
@@ -288,7 +290,10 @@ static void interval_log_impl(gpointer data,
 		i->times = 0;
 		if (i->callback.callback_set) {
 		    i->callback.u.float_cb(ts, i->current.d, i->callback.callback_data_ptr);
+		} else {
+		    PRINT_DEBUG("Callback(%s/%s) not set\n", p->fmt, p->label);
 		}
+
 	    }
 	    /*
 	    else {
