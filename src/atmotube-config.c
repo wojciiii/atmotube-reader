@@ -1,6 +1,6 @@
 #include <confuse.h>
+#include "atmotube.h"
 #include "atmotube-config.h"
-#include "atmotube_common.h"
 
 #include <string.h>
 #include <unistd.h>

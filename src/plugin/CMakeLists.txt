@@ -6,6 +6,8 @@ set(atmotube_reader_SRCS atmotube-reader.c)
 #link_directories(${GATTLIB_LIBDIR})
 
 include_directories(${SQLITE3_INCLUDE_DIRS} ../)
+include_directories(${atmotube-reader_SOURCE_DIR}/include)
+include_directories(${GATTLIB_INCLUDE_DIRS})
 
 add_library (file SHARED file.h file.c)
 add_library (db SHARED db.h db.c)

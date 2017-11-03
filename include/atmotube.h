@@ -18,7 +18,24 @@
 #define ATMOTUBE_H
 
 #include <gattlib.h>
-#include "atmotube_common.h"
+
+#define ATMOTUBE_RET_OK 0
+#define ATMOTUBE_RET_ERROR 1
+
+#ifndef DEBUG
+#define DEBUG 1
+#endif
+
+#if (DEBUG)
+#include <stdio.h>
+#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#else
+#  define PRINT_DEBUG(fmt, ...)
+#endif
+
+#define PRINT_ERROR(fmt, ...) printf(fmt, ##__VA_ARGS__)
+
+#define UNUSED(x) (void)(x)
 
 enum CHARACTER_ID
 {

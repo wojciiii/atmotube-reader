@@ -15,7 +15,7 @@
 */
 
 #include "db.h"
-#include "atmotube_common.h"
+#include <atmotube.h>
 #include "atmotube-config.h"
 
 static const char* type = "db";

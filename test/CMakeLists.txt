@@ -3,6 +3,7 @@ set(atmotube_test_SRCS atmotube-test.c)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${GATTLIB_INCLUDE_DIRS})
 include_directories(${CHECK_INCLUDE_DIRS})
+include_directories(${atmotube-reader_SOURCE_DIR}/include)
 
 link_directories(${GATTLIB_LIBDIR})
 

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+project(atmotube-reader)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GATTLIB REQUIRED gattlib)
 
@@ -20,6 +21,7 @@ endif(CHECK_FOUND)
 
 add_subdirectory (src)
 add_subdirectory (src/plugin)
+add_subdirectory (app)
 
 enable_testing()
 add_subdirectory (test)

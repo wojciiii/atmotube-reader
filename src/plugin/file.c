@@ -17,7 +17,7 @@
 #include "file.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "atmotube_common.h"
+#include <atmotube.h>
 #include "atmotube-config.h"
 
 static bool started = false;
