@@ -24,7 +24,7 @@
 #include "atmotube.h"
 #include "atmotube-private.h"
 #include "atmotube-config.h"
-#include "interval.h"
+#include "atmotube-interval.h"
 #include "atmotube-output.h"
 
 AtmotubeGlData glData;

@@ -22,7 +22,7 @@
 #include <atmotube-config.h>
 #include <atmotube-plugin.h>
 #include <atmotube-private.h>
-#include <interval.h>
+#include <atmotube-interval.h>
 #include <unistd.h>
 
 static const char* plugin_path = NULL;

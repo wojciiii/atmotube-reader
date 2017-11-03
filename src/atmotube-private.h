@@ -22,7 +22,7 @@
 #include "atmotube-output.h"
 #include "atmotube-plugin-if.h"
 #include "atmotube-plugin.h"
-#include "interval.h"
+#include "atmotube-interval.h"
 
 #include <stdbool.h>
 #include <glib.h>

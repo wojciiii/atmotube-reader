@@ -1,4 +1,4 @@
-#include "interval.h"
+#include "atmotube-interval.h"
 #include "atmotube.h"
 #include <glib.h>
 #include <unistd.h>

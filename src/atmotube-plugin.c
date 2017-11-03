@@ -28,7 +28,7 @@
 #include "atmotube-plugin.h"
 #include "atmotube.h"
 #include "atmotube-config.h"
-#include "interval.h"
+#include "atmotube-interval.h"
 #include "atmotube-private.h"
 
 #define FUNCTION_GET_PLUGIN_TYPE "get_plugin_type"
