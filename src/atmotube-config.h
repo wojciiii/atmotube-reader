@@ -27,18 +27,21 @@
 typedef struct Atmotube_Device_S {
     /* Device: */
     int device_id;
-    const char* device_name;
-    const char* device_address;
-    const char* device_description;
+    char* device_name;
+    char* device_address;
+    char* device_description;
     int device_resolution;
 
     /* Output: */
-    const char* output_type;
-    const char* output_filename;
+    char* output_type;
+    char* output_filename;
 } Atmotube_Device;
 
 void atmotube_config_start(const char* fullName);
 
+/* Callbacks used to communicate the found config with the user of
+ * this interface.
+*/
 typedef void (setPluginPathCB)(const char* plugin_path);
 typedef int (deviceCB)(void* memory);
 typedef void* (NumDevicesCB)(int numDevices);

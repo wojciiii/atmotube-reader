@@ -41,7 +41,7 @@ static cfg_opt_t opts[] = {
 static int numDevices = 0;
 static int numOutputs = 0;
 
-static char* configFilename;
+static char* configFilename = NULL;
 
 static int validate_global(cfg_t *cfg, cfg_opt_t *opt)
 {
@@ -86,54 +86,33 @@ static int validate_output(cfg_t *cfg, cfg_opt_t *opt)
 
 	return ATMOTUBE_RET_OK;
 }
-/*
-static int validate_output_type(cfg_t *cfg, cfg_opt_t *opt, const char *value, void *result)
-{
-    if(strcmp(value, "file") == 0)
-	*(int *)result = OUTPUT_FILE;
-    else if(strcmp(value, "db") == 0)
-	*(int *)result = OUTPUT_DB;
-    else if(strcmp(value, "custom") == 0)
-	*(int *)result = OUTPUT_CUSTOM;
-    else
-	{
-	    return -1;
-	}
-    return 0;
-}
-*/
+
 static int validate_device(cfg_t *cfg, cfg_opt_t *opt)
 {
 	cfg_t *sec = cfg_opt_getnsec(opt, cfg_opt_size(opt) - 1);
 
-	if (!sec)
-	{
-		cfg_error(cfg, "section is NULL!?");
-		return ATMOTUBE_RET_ERROR;
+	if (!sec) {
+	    cfg_error(cfg, "section is NULL!?");
+	    return ATMOTUBE_RET_ERROR;
+	}
+	if (cfg_getstr(sec, "name") == 0) {
+	    cfg_error(cfg, "name option must be set for device '%s'", cfg_title(sec));
+	    return ATMOTUBE_RET_ERROR;
 	}
 
-	if (cfg_getstr(sec, "name") == 0)
-	{
-		cfg_error(cfg, "name option must be set for device '%s'", cfg_title(sec));
-		return ATMOTUBE_RET_ERROR;
+	if (cfg_getstr(sec, "address") == 0) {
+	    cfg_error(cfg, "address option must be set for device '%s'", cfg_title(sec));
+	    return ATMOTUBE_RET_ERROR;
 	}
 
-	if (cfg_getstr(sec, "address") == 0)
-	{
-		cfg_error(cfg, "address option must be set for device '%s'", cfg_title(sec));
-		return ATMOTUBE_RET_ERROR;
+	if (cfg_getstr(sec, "description") == 0) {
+	    cfg_error(cfg, "description option must be set for device '%s'", cfg_title(sec));
+	    return ATMOTUBE_RET_ERROR;
 	}
 
-	if (cfg_getstr(sec, "description") == 0)
-	{
-		cfg_error(cfg, "description option must be set for device '%s'", cfg_title(sec));
-		return ATMOTUBE_RET_ERROR;
-	}
-
-	if (cfg_getint(sec, "resolution") == 0)
-	{
-		cfg_error(cfg, "resolution option must be set for device '%ld'", cfg_title(sec));
-		return ATMOTUBE_RET_ERROR;
+	if (cfg_getint(sec, "resolution") == 0)	{
+	    cfg_error(cfg, "resolution option must be set for device '%ld'", cfg_title(sec));
+	    return ATMOTUBE_RET_ERROR;
 	}
 
 	return ATMOTUBE_RET_OK;
@@ -141,21 +120,16 @@ static int validate_device(cfg_t *cfg, cfg_opt_t *opt)
 
 void atmotube_config_start(const char* fullName)
 {
-	if (fullName != NULL)
-	{
-		configFilename = malloc(strlen(fullName) + 1);
-		strcpy(configFilename, fullName);
+	if (fullName != NULL) {
+	    configFilename = malloc(strlen(fullName) + 1);
+	    strcpy(configFilename, fullName);
+	} else {
+	    struct passwd *pw = getpwuid(getuid());
+	    const char *homedir = pw->pw_dir;
+	    const char *filename = ".atmotube/config";
+	    configFilename = malloc(snprintf(NULL, 0, "%s/%s", homedir, filename) + 1);
+	    sprintf(configFilename, "%s/%s", homedir, filename);
 	}
-	else
-	{
-		struct passwd *pw = getpwuid(getuid());
-		const char *homedir = pw->pw_dir;
-		const char *filename = ".atmotube/config";
-
-		configFilename = malloc(snprintf(NULL, 0, "%s/%s", homedir, filename) + 1);
-		sprintf(configFilename, "%s/%s", homedir, filename);
-	}
-
 	PRINT_DEBUG("Using config file: %s\n", configFilename);
 }
 
@@ -191,7 +165,22 @@ static Atmotube_Device* get_ptr(void *src, int number, size_t element_size, size
     return (Atmotube_Device*)p;
 }
 
-static const char *UNDEF_OUTPUT_TYPE="undefined_output_type";
+static char *UNDEF_OUTPUT_TYPE=NULL;
+
+static void clean_up_devices(void* memory,
+			     size_t element_size, size_t offset)
+{
+    int i = 0;
+    for (i = 0; i < numDevices; i++) {
+	PRINT_DEBUG("Deallocate device %d\n", i);
+	Atmotube_Device* device = get_ptr(memory, i, element_size, offset);
+	free(device->device_name);
+	free(device->device_address);
+	free(device->device_description);
+	free(device->output_type);
+	free(device->output_filename);
+    }
+}
 
 int atmotube_config_load(setPluginPathCB pluginPathCb,
 			 NumDevicesCB numDevicesCb,
@@ -291,6 +280,7 @@ int atmotube_config_load(setPluginPathCB pluginPathCb,
 	}
 	if (!found) {
 	    printf("Unable to find source %s\n", src);
+	    clean_up_devices(memory, element_size, offset);
 	    cfg_free(cfg);
 	    return ATMOTUBE_RET_ERROR;
 	}
@@ -302,6 +292,7 @@ int atmotube_config_load(setPluginPathCB pluginPathCb,
 
 	if (device->output_type == UNDEF_OUTPUT_TYPE) {
 	    printf("Device %s needs an output. Can't continue.\n", device->device_name);
+	    clean_up_devices(memory, element_size, offset);
 	    cfg_free(cfg);
 	    return ATMOTUBE_RET_ERROR;
 	}

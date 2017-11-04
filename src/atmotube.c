@@ -39,12 +39,6 @@ uuid_t UUIDS[NUM_UUIDS] = { CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID1
 char *intervalnames[] = {"VOC", "HUMIDITY", "TEMPERATURE", "STATUS"};
 char *fmts[] = {INTERVAL_FLOAT, INTERVAL_ULONG, INTERVAL_ULONG, ""};
 
-static uint64_t getTimeStamp() {
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
-}
-
 static void init_gl_data(AtmotubeGlData *ptr)
 {
   ptr->adapter = NULL;
@@ -203,9 +197,6 @@ static void dumpAtmotubeData(AtmotubeData* d)
   PRINT_DEBUG("DUMP: deviceAddress = %s\n", d->device.device_address);
 }
 
-//static int numDevices = 0;
-//static AtmotubeData* devices = NULL;
-
 /* Get a pointer to list of structs used for devices. */
 static void* atmotube_num_devices(int n)
 {
@@ -243,11 +234,17 @@ int atmotube_add_devices_from_config(const char* fullName)
   int ret = atmotube_config_load(atmotube_set_plugin_path,
 				 atmotube_num_devices,
 				 atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
-  // TODO: error checking!
-  int i = 0;
 
+  if (ret != ATMOTUBE_RET_OK) {
+      /* Deallocate any memory. */
+      atmotube_config_end();
+      free(glData.deviceConfiguration);
+      return ATMOTUBE_RET_ERROR;
+  }
+  
   PRINT_DEBUG("Devices: %d\n", glData.deviceConfigurationSize);
       
+  int i = 0;
   for (i = 0; i < glData.deviceConfigurationSize; i++) {
       AtmotubeData* d = glData.deviceConfiguration + i;
       d->connection = NULL;
@@ -258,15 +255,6 @@ int atmotube_add_devices_from_config(const char* fullName)
       dumpAtmotubeData(d);
       glData.connectableDevices = g_slist_append(glData.connectableDevices, d);
   }
-
-  /*
-  ret = atmotube_plugin_find(plugin_path);
-  if (ret != ATMOTUBE_RET_OK) {
-      // TODO: clean up any allocated data.
-      PRINT_ERROR("atmotube_plugin_find failed\n");
-      return ATMOTUBE_RET_ERROR;
-  }
-  */
 
   atmotube_config_end();
 
