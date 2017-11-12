@@ -39,7 +39,7 @@ typedef struct
     /* Runtime settings: */
     gatt_connection_t* connection;
     bool connected;
-    bool registred;
+    /* bool registred; */
 
     AtmotubeOutput* output;
     AtmotubePlugin* plugin;
@@ -68,4 +68,6 @@ extern uuid_t UUIDS[NUM_UUIDS];
 extern char *intervalnames[NUM_UUIDS];
 extern char *fmts[NUM_UUIDS];
 
-#endif
+uuid_t* atmotube_getuuid(enum CHARACTER_ID id);
+
+#endif /* ATMOTUBE_PRIVATE_H */

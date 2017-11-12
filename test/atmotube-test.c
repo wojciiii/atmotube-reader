@@ -23,13 +23,16 @@
 #include <atmotube-plugin.h>
 #include <atmotube-private.h>
 #include <atmotube-interval.h>
+#include <atmotube-handler.h>
 #include <unistd.h>
 
-static const char* plugin_path = NULL;
+static char* plugin_path = NULL;
 
 static void set_plugin_path(const char* path)
 {
     printf("Plugin path: %s\n", path);
+
+    ck_assert(plugin_path == NULL);
     
     plugin_path = strdup(path);
 }
@@ -123,6 +126,8 @@ START_TEST (test_load_config)
     deviceStore = NULL;
 
     atmotube_config_end();
+    free(plugin_path);
+    plugin_path = NULL;
 }
 END_TEST
 
@@ -164,6 +169,10 @@ START_TEST (test_load_config_offset)
     }
     free(deviceStore2);
     deviceStore2 = NULL;
+
+    atmotube_config_end();
+    free(plugin_path);
+    plugin_path = NULL;
 }
 END_TEST
 
@@ -276,6 +285,10 @@ START_TEST (test_plugin)
 
     free(deviceStore3);
     deviceStore3 = NULL;
+
+    atmotube_config_end();
+    free(plugin_path);
+    plugin_path = NULL;
 }
 END_TEST
 
@@ -359,7 +372,7 @@ START_TEST (test_output_file)
     unsigned long value = 100UL;
     void* data_ptr = target;
 
-    for (i = 0; i < 1024; i++) {
+    for (i = 0; i < 5; i++) {
 	output_temperature(ts+i, value+i, data_ptr);
 	output_humidity(ts+i, value+i, data_ptr);
 	output_voc(ts+i, value+i+0.1f, data_ptr);

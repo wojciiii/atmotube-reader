@@ -14,14 +14,15 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ATMOTUBE_OUTPUT_H
-#define ATMOTUBE_OUTPUT_H
+#ifndef ATMOTUBE_HANDLER_H
+#define ATMOTUBE_HANDLER_H
 
-/* Deallocate any plugins. */
-int atmotube_destroy_outputs();
+#include <stdlib.h>
+#include <unistd.h>
 
-void output_temperature(unsigned long ts, unsigned long value, void* data_ptr);
-void output_humidity(unsigned long ts, unsigned long value, void* data_ptr);
-void output_voc(unsigned long ts, float value, void* data_ptr);
+void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
 
-#endif /* ATMOTUBE_OUTPUT_H */
+int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
+int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id);
+
+#endif /* ATMOTUBE_HANDLER_H */

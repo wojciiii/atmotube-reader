@@ -26,6 +26,7 @@
 #include "atmotube-config.h"
 #include "atmotube-interval.h"
 #include "atmotube-output.h"
+#include "atmotube-handler.h"
 
 AtmotubeGlData glData;
 
@@ -56,20 +57,17 @@ void atmotube_start()
   int i;
   int ret;
 
-  for (i = VOC; i < STATUS; i++)
-    {
+  for (i = VOC; i < STATUS; i++) {
       ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
-    if (ret != 0)
-      {
-        PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
-        exit(1);
+      if (ret != 0) {
+	  PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
+	  exit(1);
       }
-    }
+  }
 
-    DEF_ATMOTUBE_NAME="ATMOTUBE";
-    DEF_ATMOTUBE_SEARCH_TIMEOUT = 4;
-
-    init_gl_data(&glData);
+  DEF_ATMOTUBE_NAME="ATMOTUBE";
+  DEF_ATMOTUBE_SEARCH_TIMEOUT = 4;
+  init_gl_data(&glData);
 }
 
 int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id)
@@ -80,16 +78,15 @@ int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARAC
   PRINT_DEBUG("Register notification for %s.\n", str_uuid);
 
   ret = gattlib_string_to_uuid(str_uuid, strlen(str_uuid), &UUIDS[id]);
-  if (ret != 0)
-  {
-    PRINT_DEBUG("gattlib_string_to_uuid (ret=%d)\n", ret);
-    return 1;
+  if (ret != 0) {
+      PRINT_DEBUG("gattlib_string_to_uuid (ret=%d)\n", ret);
+      return 1;
   }
 
   ret = gattlib_notification_start(connection, &UUIDS[id]);
   if (ret) {
-    PRINT_DEBUG("Fail to start notification (ret=%d)\n.", ret);
-    return 1;
+      PRINT_DEBUG("Fail to start notification (ret=%d)\n.", ret);
+      return 1;
   }
 
   return 0;
@@ -101,10 +98,9 @@ int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID 
   int ret;
   PRINT_DEBUG("Stop notifications for %s.\n", str_uuid);
   ret = gattlib_notification_stop(connection, &UUIDS[id]);
-  if (ret != 0)
-  {
-    PRINT_DEBUG("Failed to stop notification (ret=%d)\n.", ret);
-    return 1;
+  if (ret != 0) {
+      PRINT_DEBUG("Failed to stop notification (ret=%d)\n.", ret);
+      return 1;
   }
 
   return 0;
@@ -114,16 +110,13 @@ static void discovered_device(const char* addr, const char* name)
 {
   PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
 
-  if (strcmp(name, glData.search_name) == 0)
-  {
-    char* temp = malloc(strlen(addr)+1);
-    strcpy(temp, addr);
-    glData.foundDevices = g_slist_append(glData.foundDevices, temp);
-    PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
-  }
-  else
-  {
-    PRINT_DEBUG("Found other device %s\n", name);
+  if (strcmp(name, glData.search_name) == 0) {
+      char* temp = malloc(strlen(addr)+1);
+      strcpy(temp, addr);
+      glData.foundDevices = g_slist_append(glData.foundDevices, temp);
+      PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
+  } else {
+      PRINT_DEBUG("Found other device %s\n", name);
   }
 }
 
@@ -136,19 +129,17 @@ int atmotube_search(const char* name, int timeout)
 
   // Using default adapter.
   ret = gattlib_adapter_open(NULL, &glData.adapter);
-  if (ret)
-  {
-    PRINT_DEBUG("gattlib_adapter_open failed.\n");
-    return ATMOTUBE_RET_ERROR;
+  if (ret) {
+      PRINT_DEBUG("gattlib_adapter_open failed.\n");
+      return ATMOTUBE_RET_ERROR;
   }
 
   PRINT_DEBUG("Searching for %s, timeout=%d.\n", name, timeout);
   
   ret = gattlib_adapter_scan_enable(glData.adapter, discovered_device, timeout);
-  if (ret)
-  {
-    PRINT_DEBUG("gattlib_adapter_scan_enable failed.\n");
-    return ATMOTUBE_RET_ERROR;
+  if (ret) {
+      PRINT_DEBUG("gattlib_adapter_scan_enable failed.\n");
+      return ATMOTUBE_RET_ERROR;
   }
 
   gattlib_adapter_scan_disable(glData.adapter);
@@ -173,20 +164,18 @@ char** atmotube_get_found_devices()
   GSList *list = NULL;
   int i;
 
-  if (size == 0)
-  {
-    return NULL;
+  if (size == 0) {
+      return NULL;
   }
 
   output = malloc(size * sizeof(char*));
   ptr = output;
-  for (i = 0; i < size; i++)
-  {
-    list = g_slist_nth (glData.foundDevices, i);
-    buffSize = strlen(list->data) + 1;
-    *ptr = malloc(buffSize);
-    strcpy(*ptr, list->data);
-    ptr++;
+  for (i = 0; i < size; i++) {
+      list = g_slist_nth (glData.foundDevices, i);
+      buffSize = strlen(list->data) + 1;
+      *ptr = malloc(buffSize);
+      strcpy(*ptr, list->data);
+      ptr++;
   }
 
   return output;
@@ -194,7 +183,7 @@ char** atmotube_get_found_devices()
 
 static void dumpAtmotubeData(AtmotubeData* d)
 {
-  PRINT_DEBUG("DUMP: deviceAddress = %s\n", d->device.device_address);
+    PRINT_DEBUG("DUMP: deviceAddress = %s\n", d->device.device_address);
 }
 
 /* Get a pointer to list of structs used for devices. */
@@ -249,7 +238,7 @@ int atmotube_add_devices_from_config(const char* fullName)
       AtmotubeData* d = glData.deviceConfiguration + i;
       d->connection = NULL;
       d->connected  = 0;
-      d->registred  = 0;
+      //d->registred  = 0;
       d->output     = NULL;
       d->plugin     = NULL;
       dumpAtmotubeData(d);
@@ -295,16 +284,13 @@ static void disconnect_impl(gpointer data,
   {
     PRINT_DEBUG("Disconnecting %s\n", d->device.device_address);
 
-    if (gattlib_disconnect(d->connection) == 0)
-    {
-      PRINT_DEBUG("Disconnected from %s\n", d->device.device_address);
-      d->connected = false;
-    }
-    else
-    {
-      PRINT_DEBUG("gattlib_disconnect failed\n");
-     *ret += 1;
-     d->connected = false;
+    if (gattlib_disconnect(d->connection) == 0) {
+	PRINT_DEBUG("Disconnected from %s\n", d->device.device_address);
+	d->connected = false;
+    } else {
+	PRINT_DEBUG("gattlib_disconnect failed\n");
+	*ret += 1;
+	d->connected = false;
     }
   }
 }
@@ -314,13 +300,10 @@ int atmotube_connect()
   int ret = 0;
   g_slist_foreach (glData.connectableDevices, connect_impl, &ret);
 
-  if (ret != 0)
-  {
-    return ATMOTUBE_RET_ERROR;
-  }
-  else
-  {
-    return ATMOTUBE_RET_OK;
+  if (ret != 0) {
+      return ATMOTUBE_RET_ERROR;
+  } else {
+      return ATMOTUBE_RET_OK;
   }
 }
 
@@ -329,13 +312,10 @@ int atmotube_disconnect()
   int ret = 0;
   g_slist_foreach (glData.connectableDevices, disconnect_impl, &ret);
 
-  if (ret != 0)
-  {
-    return ATMOTUBE_RET_ERROR;
-  }
-  else
-  {
-    return ATMOTUBE_RET_OK;
+  if (ret != 0) {
+      return ATMOTUBE_RET_ERROR;
+  } else {
+      return ATMOTUBE_RET_OK;
   }
 }
 
@@ -390,8 +370,7 @@ static void register_impl(gpointer data,
   int* ud = (int*)user_data;
   int ret = 0;
 
-  if (!d->connected)
-  {
+  if (!d->connected) {
       *ud += 1;
       PRINT_DEBUG("Unable to register, not connected to %s\n", d->device.device_address);
       d->connected = false;
@@ -413,14 +392,13 @@ static void register_impl(gpointer data,
       ret += atmotube_notify_on_characteristic(d->connection, character_id);
   }
 
-  if (ret != 0)
-  {
-    PRINT_DEBUG("atmotube_notify_on_characteristic failed for %s\n", d->device.device_address);
-    modify_intervals(d, false);
-    gattlib_disconnect(d->connection);
-    d->connected = false;
-    *ud += 1;
-    return;
+  if (ret != 0) {
+      PRINT_DEBUG("atmotube_notify_on_characteristic failed for %s\n", d->device.device_address);
+      modify_intervals(d, false);
+      gattlib_disconnect(d->connection);
+      d->connected = false;
+      *ud += 1;
+      return;
   }
 }
 
@@ -432,11 +410,13 @@ static void unregister_impl(gpointer data,
     int ret = 0;
 
     modify_intervals(d, false);
-    
-    uint8_t character_id;
-    for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
-	PRINT_DEBUG("Stop notify on: %u\n", character_id);
-	ret += atmotube_stop_notification(d->connection, character_id);
+
+    if (d->connected) {
+	uint8_t character_id;
+	for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
+	    PRINT_DEBUG("Stop notify on: %u\n", character_id);
+	    ret += atmotube_stop_notification(d->connection, character_id);
+	}
     }
 }
 
@@ -445,13 +425,10 @@ int atmotube_register()
   int ret = 0;
   g_slist_foreach (glData.connectableDevices, register_impl, &ret);
 
-  if (ret != 0)
-  {
-    return ATMOTUBE_RET_ERROR;
-  }
-  else
-  {
-    return ATMOTUBE_RET_OK;
+  if (ret != 0) {
+      return ATMOTUBE_RET_ERROR;
+  } else {
+      return ATMOTUBE_RET_OK;
   }
 }
 
@@ -460,22 +437,23 @@ int atmotube_unregister()
   int ret = 0;
   g_slist_foreach (glData.connectableDevices, unregister_impl, &ret);
 
-  if (ret != 0)
-  {
-    return ATMOTUBE_RET_ERROR;
-  }
-  else
-  {
-    return ATMOTUBE_RET_OK;
+  if (ret != 0) {
+      return ATMOTUBE_RET_ERROR;
+  } else {
+      return ATMOTUBE_RET_OK;
   }
 }
 
 uuid_t* atmotube_getuuid(enum CHARACTER_ID id)
 {
-  return &UUIDS[id];
+    return &UUIDS[id];
 }
 
 void atmotube_end()
 {
-  atmotube_disconnect();
+    /* Disconnect, remove any outputs and plugins. */
+    atmotube_disconnect();
+    atmotube_unregister();
+    atmotube_destroy_outputs();
+    atmotube_plugin_unload_all();
 }

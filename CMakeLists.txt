@@ -3,6 +3,8 @@ project(atmotube-reader)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GATTLIB REQUIRED gattlib)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 #include(cmake/FindCheck.cmake)
 #include(cmake/FindLibConfuse.cmake)

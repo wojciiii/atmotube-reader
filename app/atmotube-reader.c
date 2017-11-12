@@ -28,9 +28,9 @@
 static GMainLoop *loop = NULL;
 static bool aborted    = false;
 
-
 void intHandler(int dummy)
 {
+    UNUSED(dummy);
     printf("INT handler\n");
     
     if (loop != NULL) {
@@ -50,6 +50,9 @@ static int sleep_ms(uint16_t milliseconds)
 }
 
 int main(int argc, char *argv[]) {
+    UNUSED(argc);
+    UNUSED(argv);
+
     int ret;
 
     atmotube_start();
@@ -112,7 +115,6 @@ int main(int argc, char *argv[]) {
     printf("Registering handlers.\n");
     ret = atmotube_register();
     if (ret != ATMOTUBE_RET_OK) {
-        atmotube_disconnect();
         atmotube_end();
     }
 
@@ -122,8 +124,6 @@ int main(int argc, char *argv[]) {
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
 
-    atmotube_unregister();
-    atmotube_disconnect();
     atmotube_end();
 
     return 0;

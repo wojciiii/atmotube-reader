@@ -88,7 +88,17 @@ int atmotube_create_outputs()
 
 int atmotube_destroy_outputs()
 {
-    return ATMOTUBE_RET_ERROR;
+    int i;
+
+    for (i = 0; i < glData.deviceConfigurationSize; i++) {
+	AtmotubeData* d = glData.deviceConfiguration + i;
+
+	int status = d->plugin->plugin_stop();
+	PRINT_DEBUG("Stopped plugin: %d\n", status);
+	free(d->output);
+    }
+    
+    return ATMOTUBE_RET_OK;
 }
 
 void output_temperature(unsigned long ts, unsigned long value, void* data_ptr)

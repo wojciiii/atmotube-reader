@@ -182,6 +182,7 @@ int atmotube_plugin_unload_all()
     for (i = 0; i < numberOfPlugins; i++) {
 	node = g_slist_nth(plugins, i);
 	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
+	PRINT_DEBUG("Unloading plugin: %s\n", info->type);
 	dlclose(info->handle);
 	free(info);
     }
@@ -190,6 +191,6 @@ int atmotube_plugin_unload_all()
     numberOfPlugins = 0;
     plugins = NULL;
     
-    return ATMOTUBE_RET_ERROR;
+    return ATMOTUBE_RET_OK;
 }
 

@@ -79,6 +79,9 @@ char** atmotube_get_found_devices();
 // Read devices from a config file.
 int atmotube_add_devices_from_config(const char* fullName);
 
+/* Create output plugins described by config. */
+int atmotube_create_outputs();
+
 /* Find atmotube plugins. */
 int atmotube_plugin_find(const char* path);
 
@@ -93,12 +96,5 @@ int atmotube_unregister();
 
 // Disconnect from configured devices.
 int atmotube_disconnect();
-
-void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data);
-
-int atmotube_notify_on_characteristic(gatt_connection_t* connection, enum CHARACTER_ID id);
-int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID id);
-
-uuid_t* atmotube_getuuid(enum CHARACTER_ID id);
 
 #endif /* ATMOTUBE_H */

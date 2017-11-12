@@ -356,8 +356,9 @@ int interval_stop(const char *label, const char *fmt)
 }
 
 static void interval_dump_impl(gpointer data,
-			       gpointer unsued)
+			       gpointer unused)
 {
+    UNUSED(unused);
     Interval* i = (Interval*)data;
 
     printf("Interval %s:%s\n", i->label, i->fmt);
