@@ -38,6 +38,7 @@ typedef struct
 typedef struct
 {
     /* Identification. */
+    int device_id;
     const char* label;
     const char* fmt;
     /* State. */
@@ -54,11 +55,12 @@ typedef struct
 
 GSList* intervalList = NULL;
 
-#define find_in_list(found, label, fmt)					\
+#define find_in_list(device_id, found, label, fmt)			\
     GSList *l;								\
     for (l = intervalList; l != NULL; l = l->next) {			\
 	Interval *i = (Interval*)l->data;				\
-	if ( (strcmp(i->label, label) == 0) &&				\
+	if ( (device_id == i->device_id) &&				\
+	     (strcmp(i->label, label) == 0) &&				\
 	     (strcmp(i->fmt, fmt) == 0) ) {				\
 	    found = i;							\
 	    break;							\
@@ -73,7 +75,7 @@ inline static unsigned long getTimeStamp(void)
     return milliseconds;
 }
 
-int interval_add(const char *label, const char *fmt)
+int interval_add(int device_id, const char *label, const char *fmt)
 {
     int status = ATMOTUBE_RET_ERROR;
     
@@ -87,6 +89,7 @@ int interval_add(const char *label, const char *fmt)
     if (status == ATMOTUBE_RET_OK) {
 	Interval* i = (Interval*)malloc(sizeof(Interval));
 	memset(i, 0, sizeof(Interval));
+	i->device_id = device_id;
 	i->label=g_strdup(label);
 	i->fmt=g_strdup(fmt);
 	i->started = false;
@@ -96,7 +99,7 @@ int interval_add(const char *label, const char *fmt)
 	i->times = 0;
 	i->current.ul = 0;
 	i->current.d = 0.0f;
-	PRINT_DEBUG("Adding interval %s:%s\n", label, fmt);
+	PRINT_DEBUG("Adding interval %d:%s:%s\n", device_id, label, fmt);
 	intervalList = g_slist_append(intervalList, i);
 
 	PRINT_DEBUG("List len=%d\n", g_slist_length(intervalList));
@@ -105,10 +108,12 @@ int interval_add(const char *label, const char *fmt)
     return status;
 }
 
-int interval_remove_callbacks(const char *label, const char *fmt)
+int interval_remove_callbacks(int device_id,
+			      const char *label,
+			      const char *fmt)
 {
     Interval* found  = NULL;
-    find_in_list(found, label, fmt);
+    find_in_list(device_id, found, label, fmt);
 
     if (found != NULL) {
 	found->callback.callback_set = false;
@@ -123,10 +128,14 @@ int interval_remove_callbacks(const char *label, const char *fmt)
     return ATMOTUBE_RET_ERROR;
 }
 
-int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callback callback, void* data_ptr)
+int interval_add_ulong_callback(int device_id,
+				const char *label,
+				const char *fmt,
+				ulong_callback callback,
+				void* data_ptr)
 {
     Interval* found  = NULL;
-    find_in_list(found, label, fmt);
+    find_in_list(device_id, found, label, fmt);
 
     if (found != NULL) {
 	found->callback.u.ulong_cb = callback;
@@ -142,10 +151,14 @@ int interval_add_ulong_callback(const char *label, const char *fmt, ulong_callba
     return ATMOTUBE_RET_ERROR;
 }
 
-int interval_add_float_callback(const char *label, const char *fmt, float_callback callback, void* data_ptr)
+int interval_add_float_callback(int device_id,
+				const char *label,
+				const char *fmt,
+				float_callback callback,
+				void* data_ptr)
 {
     Interval* found  = NULL;
-    find_in_list(found, label, fmt);
+    find_in_list(device_id, found, label, fmt);
 
     if (found != NULL) {
 	found->callback.u.float_cb = callback;
@@ -161,10 +174,12 @@ int interval_add_float_callback(const char *label, const char *fmt, float_callba
     return ATMOTUBE_RET_ERROR;
 }
 
-int interval_remove(const char *label, const char *fmt)
+int interval_remove(int device_id,
+		    const char *label,
+		    const char *fmt)
 {
     Interval* found  = NULL;
-    find_in_list(found, label, fmt);
+    find_in_list(device_id, found, label, fmt);
 
     if (found != NULL) {
 	free(found);
@@ -176,21 +191,29 @@ int interval_remove(const char *label, const char *fmt)
     return ATMOTUBE_RET_ERROR;
 }
 
-int interval_start(const char *label,
+int interval_start(int device_id,
+		   const char *label,
 		   const char *fmt,
 		   unsigned long interval_ms)
 {
     Interval* found  = NULL;
-    find_in_list(found, label, fmt);
+    find_in_list(device_id, found, label, fmt);
 
     if (found != NULL) {
-	PRINT_DEBUG("Interval: %lu, %lu, %lu\n", found->time_interval, found->current_ts, found->max_ts);
+	PRINT_DEBUG("Interval: %d, %lu, %lu, %lu\n",
+		    device_id, found->time_interval,
+		    found->current_ts,
+		    found->max_ts);
 		
 	found->time_interval = interval_ms;
 	found->current_ts = getTimeStamp();
 	found->max_ts     = found->current_ts + interval_ms;
 	found->started    = true;
-	PRINT_DEBUG("Interval %s:%s started (%ld)\n", label, fmt, interval_ms);
+	PRINT_DEBUG("Interval %d:%s:%s started (%ld)\n",
+		    device_id,
+		    label,
+		    fmt,
+		    interval_ms);
 		
 	return ATMOTUBE_RET_OK;
     }
@@ -203,6 +226,7 @@ int interval_start(const char *label,
 
 typedef struct 
 {
+    int device_id;
     const char* label;
     const char* fmt;
     IntervalData data;
@@ -229,7 +253,8 @@ static void interval_log_impl(gpointer data,
 
     //    PRINT_DEBUG("%s vs %s\n", p->label, i->label);
     
-    if ( (strcmp(p->label, i->label) == 0) &&
+    if ( (p->device_id == i->device_id) &&
+	 (strcmp(p->label, i->label) == 0) &&
 	 (strcmp(p->fmt, i->fmt) == 0) ) {
 	unsigned long ts = getTimeStamp();
 
@@ -304,11 +329,14 @@ static void interval_log_impl(gpointer data,
     }
 }
 
-void interval_log(const char *label, const char *fmt, ...)
+void interval_log(int device_id,
+		  const char *label,
+		  const char *fmt, ...)
 {
     va_list ap;
     intervalParams p = {0};
 
+    p.device_id = device_id;
     p.label = label;
     p.fmt = fmt;
 
@@ -334,10 +362,10 @@ void interval_log(const char *label, const char *fmt, ...)
     g_slist_foreach (intervalList, interval_log_impl, &p);
 }
 
-int interval_stop(const char *label, const char *fmt)
+int interval_stop(int device_id, const char *label, const char *fmt)
 {
     Interval* found  = NULL;
-    find_in_list(found, label, fmt);
+    find_in_list(device_id, found, label, fmt);
 
     if (found != NULL) {
 	found->time_interval = 0;
@@ -361,7 +389,7 @@ static void interval_dump_impl(gpointer data,
     UNUSED(unused);
     Interval* i = (Interval*)data;
 
-    printf("Interval %s:%s\n", i->label, i->fmt);
+    printf("Interval %d:%s:%s\n", i->device_id, i->label, i->fmt);
     printf("\tstarted=%u\n", i->started);
     printf("\tinterval=%lu\n", i->time_interval);
     printf("\tts=%lu\n", i->current_ts);

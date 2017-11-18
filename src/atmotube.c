@@ -256,6 +256,11 @@ static void connect_impl(gpointer data,
   AtmotubeData* d = (AtmotubeData*)data;
   int* ret = (int*)user_data;
 
+  if (d->connected) {
+      PRINT_DEBUG("Already connected to %s\n", d->device.device_address);
+      return;
+  }
+      
   PRINT_DEBUG("Connecting to %s\n", d->device.device_address);
   PRINT_DEBUG("Using resolution: %d\n", d->device.device_resolution);
   
@@ -335,19 +340,19 @@ static void modify_intervals(AtmotubeData* d, bool add_interval)
 	if (strlen(fmt) > 0) {
 	    
 	    if (add_interval) {
-		PRINT_DEBUG("Adding interval: %s:%s\n", label, fmt);
-		interval_add(label, fmt);
-		interval_start(label, fmt, interval);
+		PRINT_DEBUG("Adding interval: %d:%s:%s\n", d->device.device_id, label, fmt);
+		interval_add(d->device.device_id, label, fmt);
+		interval_start(d->device.device_id, label, fmt, interval);
 		
 		switch (character_id) {
 		case VOC:
-		    interval_add_float_callback(label, fmt, output_voc, d);
+		    interval_add_float_callback(d->device.device_id, label, fmt, output_voc, d);
 		    break;
 		case HUMIDITY:
-		    interval_add_ulong_callback(label, fmt, output_humidity, d);
+		    interval_add_ulong_callback(d->device.device_id, label, fmt, output_humidity, d);
 		    break;
 		case TEMPERATURE:
-		    interval_add_ulong_callback(label, fmt, output_temperature, d);
+		    interval_add_ulong_callback(d->device.device_id, label, fmt, output_temperature, d);
 		    break;
 		case STATUS:
 		    break;
@@ -355,9 +360,9 @@ static void modify_intervals(AtmotubeData* d, bool add_interval)
 	    }
 	    else {
 		PRINT_DEBUG("Removing interval: %s:%s\n", label, fmt);
-		interval_remove_callbacks(label, fmt);
-		interval_stop(label, fmt);
-		interval_remove(label, fmt);
+		interval_remove_callbacks(d->device.device_id, label, fmt);
+		interval_stop(d->device.device_id, label, fmt);
+		interval_remove(d->device.device_id, label, fmt);
 	    }
 	}
     }

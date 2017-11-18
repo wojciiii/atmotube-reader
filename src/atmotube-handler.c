@@ -27,7 +27,7 @@
 #include "atmotube-output.h"
 #include "atmotube-private.h"
 
-static void atmotube_handle_voc(const uint8_t* data, size_t data_length)
+static void atmotube_handle_voc(int device_id, const uint8_t* data, size_t data_length)
 {
     if ((data_length) < 2) {
 	PRINT_DEBUG("handle_voc: no data\n");
@@ -38,10 +38,10 @@ static void atmotube_handle_voc(const uint8_t* data, size_t data_length)
     double voc = voc_input / 100.0f;
     PRINT_DEBUG("handle_voc: 0x%x, %f\n", voc_input, voc);
 
-    interval_log(intervalnames[VOC], fmts[VOC], voc);
+    interval_log(device_id, intervalnames[VOC], fmts[VOC], voc);
 }
 
-static void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
+static void atmotube_handle_humidity(int device_id, const uint8_t* data, size_t data_length)
 {
     if ((data_length) < 1) {
 	PRINT_DEBUG("handle_humidity: no data\n");
@@ -50,10 +50,10 @@ static void atmotube_handle_humidity(const uint8_t* data, size_t data_length)
 
     uint16_t humidity = data[0] & 0xFF;
     PRINT_DEBUG("handle_humidity: 0x%x, %d%%\n", data[0], humidity);
-    interval_log(intervalnames[HUMIDITY], fmts[HUMIDITY], humidity);
+    interval_log(device_id, intervalnames[HUMIDITY], fmts[HUMIDITY], humidity);
 }
 
-static void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
+static void atmotube_handle_temperature(int device_id, const uint8_t* data, size_t data_length)
 {
     if ((data_length) < 1) {
 	PRINT_DEBUG("handle_temperature: no data\n");
@@ -62,11 +62,13 @@ static void atmotube_handle_temperature(const uint8_t* data, size_t data_length)
 
     uint16_t temperature = data[0] & 0xFF;
     PRINT_DEBUG("handle_temperature: 0x%x, %d C\n", data[0], temperature);
-    interval_log(intervalnames[TEMPERATURE], fmts[TEMPERATURE], temperature);
+    interval_log(device_id, intervalnames[TEMPERATURE], fmts[TEMPERATURE], temperature);
 }
 
-static void atmotube_handle_status(const uint8_t* data, size_t data_length)
+static void atmotube_handle_status(int device_id, const uint8_t* data, size_t data_length)
 {
+    UNUSED(device_id);
+
     if ((data_length) < 1) {
 	PRINT_DEBUG("handle_status: no data\n");
 	return;
@@ -113,13 +115,17 @@ static void atmotube_handle_status(const uint8_t* data, size_t data_length)
     printf("\tbattery: %u%%\n", battery_percent);
 }
 
-void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data)
+void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data,
+				  size_t data_length, void* user_data)
 {
   int i;
   enum CHARACTER_ID id = CHARACTER_MAX;
   AtmotubeData* d = (AtmotubeData*)user_data;
-
-  PRINT_DEBUG("Notification Handler for %s:\n", d->device.device_address);
+  const int device_id = d->device.device_id;
+  
+  PRINT_DEBUG("Notification Handler for device %d with address: %s:\n",
+	      device_id,
+	      d->device.device_address);
 
   for (i = VOC; i < CHARACTER_MAX; i++)
   {
@@ -135,19 +141,19 @@ void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data, size_
   {
     case VOC:
       PRINT_DEBUG("VOC\n");
-      atmotube_handle_voc(data, data_length);
+      atmotube_handle_voc(device_id, data, data_length);
       break;
     case HUMIDITY:
       PRINT_DEBUG("HUMIDITY\n");
-      atmotube_handle_humidity(data, data_length);
+      atmotube_handle_humidity(device_id, data, data_length);
       break;
     case TEMPERATURE:
       PRINT_DEBUG("TEMPERATURE\n");
-      atmotube_handle_temperature(data, data_length);
+      atmotube_handle_temperature(device_id, data, data_length);
       break;
     case STATUS:
       PRINT_DEBUG("STATUS\n");
-      atmotube_handle_status(data, data_length);
+      atmotube_handle_status(device_id, data, data_length);
       break;
     default:
       PRINT_DEBUG("UNKN %d\n", id);

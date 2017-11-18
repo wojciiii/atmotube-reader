@@ -194,19 +194,20 @@ void callback_float(unsigned long ts, float value, void* data_ptr)
 START_TEST (test_interval)
 {
     int i;
+    int device_id = 0;
     const char* TEST1 = "test1";
     const char* TEST2 = "test2";
     const char* TEST3 = "test3";
     
     // LABEL, TYPE
-    interval_add(TEST1, INTERVAL_ULONG);
-    interval_add(TEST2, INTERVAL_FLOAT);
-    interval_add(TEST3, INTERVAL_ULONG);
+    interval_add(device_id, TEST1, INTERVAL_ULONG);
+    interval_add(device_id, TEST2, INTERVAL_FLOAT);
+    interval_add(device_id, TEST3, INTERVAL_ULONG);
 
     
-    interval_add_ulong_callback(TEST1, INTERVAL_ULONG, callback_ulong, p1);
-    interval_add_float_callback(TEST2, INTERVAL_FLOAT, callback_float, p2);
-    interval_add_ulong_callback(TEST3, INTERVAL_ULONG, callback_ulong, p1);
+    interval_add_ulong_callback(device_id, TEST1, INTERVAL_ULONG, callback_ulong, p1);
+    interval_add_float_callback(device_id, TEST2, INTERVAL_FLOAT, callback_float, p2);
+    interval_add_ulong_callback(device_id, TEST3, INTERVAL_ULONG, callback_ulong, p1);
  
     //interval_dump();
 
@@ -214,25 +215,126 @@ START_TEST (test_interval)
     double f1 = 0.52f;
     unsigned int t3 = 2000;
     
-    interval_start(TEST1, INTERVAL_ULONG, 1000);
-    interval_start(TEST2, INTERVAL_FLOAT, 550);
-    interval_start(TEST3, INTERVAL_ULONG, 500);
+    interval_start(device_id, TEST1, INTERVAL_ULONG, 1000);
+    interval_start(device_id, TEST2, INTERVAL_FLOAT, 550);
+    interval_start(device_id, TEST3, INTERVAL_ULONG, 500);
 
     for (i = 0; i < 21; i++)
     {
-        interval_log(TEST1, INTERVAL_ULONG, t1);
-	interval_log(TEST2, INTERVAL_FLOAT, f1);
-	interval_log(TEST3, INTERVAL_ULONG, t3);
+        interval_log(device_id, TEST1, INTERVAL_ULONG, t1);
+	interval_log(device_id, TEST2, INTERVAL_FLOAT, f1);
+	interval_log(device_id, TEST3, INTERVAL_ULONG, t3);
         usleep(100*1000);
     }
 
-    interval_stop(TEST1, INTERVAL_ULONG);
-    interval_stop(TEST2, INTERVAL_FLOAT);
-    interval_stop(TEST3, INTERVAL_ULONG);
+    interval_stop(device_id, TEST1, INTERVAL_ULONG);
+    interval_stop(device_id, TEST2, INTERVAL_FLOAT);
+    interval_stop(device_id, TEST3, INTERVAL_ULONG);
 
-    interval_remove(TEST1, INTERVAL_ULONG);
-    interval_remove(TEST2, INTERVAL_FLOAT);
-    interval_remove(TEST3, INTERVAL_ULONG);
+    interval_remove(device_id, TEST1, INTERVAL_ULONG);
+    interval_remove(device_id, TEST2, INTERVAL_FLOAT);
+    interval_remove(device_id, TEST3, INTERVAL_ULONG);
+}
+END_TEST
+
+static void* device_ptr[2] = { (void*)0x1, (void*)0x2 };
+
+static int called_dev0 = 0;
+static int called_dev1 = 0;
+
+static void multi_callback_ulong_dev0(unsigned long ts, unsigned long value, void* data_ptr)
+{
+    printf("Time(0): %lu, value=%lu\n", ts, value);
+    ck_assert(data_ptr == device_ptr[0]);
+    called_dev0++;
+}
+
+static void multi_callback_float_dev0(unsigned long ts, float value, void* data_ptr)
+{
+    printf("Time(0): %lu, value=%f\n", ts, value);
+    ck_assert(data_ptr == device_ptr[0]);
+    called_dev0++;
+}
+
+static void multi_callback_ulong_dev1(unsigned long ts, unsigned long value, void* data_ptr)
+{
+    printf("Time(1): %lu, value=%lu\n", ts, value);
+    ck_assert(data_ptr == device_ptr[1]);
+    called_dev1++;
+}
+
+static void multi_callback_float_dev1(unsigned long ts, float value, void* data_ptr)
+{
+    printf("Time(1): %lu, value=%f\n", ts, value);
+    ck_assert(data_ptr == device_ptr[1]);
+    called_dev1++;
+}
+
+START_TEST (test_multi_interval)
+{
+    int i;
+    int device_id;
+    int max_dev_id = 2;
+    const char* TEST1 = "test1";
+    const char* TEST2 = "test2";
+    const char* TEST3 = "test3";
+
+    device_id = 0;
+
+    // LABEL, TYPE
+    interval_add(device_id, TEST1, INTERVAL_ULONG);
+    interval_add(device_id, TEST2, INTERVAL_FLOAT);
+    interval_add(device_id, TEST3, INTERVAL_ULONG);
+    
+    interval_add_ulong_callback(device_id, TEST1, INTERVAL_ULONG, multi_callback_ulong_dev0, device_ptr[0]);
+    interval_add_float_callback(device_id, TEST2, INTERVAL_FLOAT, multi_callback_float_dev0, device_ptr[0]);
+    interval_add_ulong_callback(device_id, TEST3, INTERVAL_ULONG, multi_callback_ulong_dev0, device_ptr[0]);
+
+    device_id = 1;
+
+    // LABEL, TYPE
+    interval_add(device_id, TEST1, INTERVAL_ULONG);
+    interval_add(device_id, TEST2, INTERVAL_FLOAT);
+    interval_add(device_id, TEST3, INTERVAL_ULONG);
+
+    interval_add_ulong_callback(device_id, TEST1, INTERVAL_ULONG, multi_callback_ulong_dev1, device_ptr[1]);
+    interval_add_float_callback(device_id, TEST2, INTERVAL_FLOAT, multi_callback_float_dev1, device_ptr[1]);
+    interval_add_ulong_callback(device_id, TEST3, INTERVAL_ULONG, multi_callback_ulong_dev1, device_ptr[1]);
+
+    interval_dump();
+
+    unsigned int t1 = 1000;
+    double f1 = 0.52f;
+    unsigned int t3 = 2000;
+
+    for (device_id = 0; device_id < max_dev_id; device_id++) {    
+	interval_start(device_id, TEST1, INTERVAL_ULONG, 1000);
+	interval_start(device_id, TEST2, INTERVAL_FLOAT, 550);
+	interval_start(device_id, TEST3, INTERVAL_ULONG, 500);
+    }
+
+    for (i = 0; i < 100; i++) {
+	for (device_id = 0; device_id < max_dev_id; device_id++) {
+	    interval_log(device_id, TEST1, INTERVAL_ULONG, t1);
+	    interval_log(device_id, TEST2, INTERVAL_FLOAT, f1);
+	    interval_log(device_id, TEST3, INTERVAL_ULONG, t3);
+	}
+	usleep(10*1000);
+    }
+
+    for (device_id = 0; device_id < max_dev_id; device_id++) {    
+
+	interval_stop(device_id, TEST1, INTERVAL_ULONG);
+	interval_stop(device_id, TEST2, INTERVAL_FLOAT);
+	interval_stop(device_id, TEST3, INTERVAL_ULONG);
+
+	interval_remove(device_id, TEST1, INTERVAL_ULONG);
+	interval_remove(device_id, TEST2, INTERVAL_FLOAT);
+	interval_remove(device_id, TEST3, INTERVAL_ULONG);
+    }
+
+    ck_assert(called_dev0 > 0);
+    ck_assert(called_dev1 > 0);
 }
 END_TEST
 
@@ -271,9 +373,6 @@ START_TEST (test_plugin)
     ret = atmotube_plugin_find(plugin_path);
     ck_assert(ret == ATMOTUBE_RET_OK);
 
-    //ret = atmotube_create_outputs();
-    //ck_assert(ret == ATMOTUBE_RET_OK);
-    
     AtmotubePlugin* o = atmotube_plugin_get(OUTPUT_FILE);
     ck_assert(o != NULL);
     o = atmotube_plugin_get(OUTPUT_DB);
@@ -391,7 +490,11 @@ Suite* atmreader_suite(void)
 
     /* Core test case */
     tc_core = tcase_create("Core");
+    /* Set timeout, as test_multi_interval can take a while. */
+    tcase_set_timeout(tc_core, 30);
+    /* Inidividual testcases. */
     tcase_add_test(tc_core, test_interval);
+    tcase_add_test(tc_core, test_multi_interval);
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
     tcase_add_test(tc_core, test_handle_HUMIDITY_notification);
@@ -401,8 +504,8 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_plugin);
     tcase_add_test(tc_core, test_output);
     tcase_add_test(tc_core, test_output_file);
-    suite_add_tcase(s, tc_core);
 
+    suite_add_tcase(s, tc_core);
     return s;
 }
 
