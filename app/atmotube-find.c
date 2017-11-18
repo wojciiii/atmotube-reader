@@ -19,6 +19,7 @@
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "gattlib.h"
 
@@ -26,25 +27,29 @@
 
 void intHandler(int dummy)
 {
-  printf("INT handler\n");
+    UNUSED(dummy);
+    //printf("INT handler\n");
 }
 
 int main(int argc, char *argv[])
 {
+    UNUSED(argc);
+    UNUSED(argv);
     int ret;
-    char** devices = NULL;
-    char* device;
+    const char** devices = NULL;
+    const char* device;
     int i;
 
     atmotube_start();
     signal(SIGINT, intHandler);
     
-    ret = atmotube_search(DEF_ATMOTUBE_NAME, DEF_ATMOTUBE_SEARCH_TIMEOUT);
+    ret = atmotube_search(DEF_ATMOTUBE_NAME,
+			  DEF_ATMOTUBE_SEARCH_TIMEOUT);
       
-    if (ret != 0)
+    if (ret != ATMOTUBE_RET_OK)
     {
       atmotube_end();
-      return 1;
+      return ATMOTUBE_RET_ERROR;
     }
 
     int found = atmotube_num_found_devices();
@@ -61,12 +66,10 @@ int main(int argc, char *argv[])
       {
         device = devices[i];
         printf("Atmotube device %d: %s\n", i, device);
-        free(device);
       }
     }
-
     printf("Done\n");
 
     atmotube_end();
-    return 0;
+    return ATMOTUBE_RET_OK;
 }

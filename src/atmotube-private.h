@@ -53,6 +53,8 @@ typedef struct
     GSList* connectableDevices;
     GSList* foundDevices;
 
+    char** found_devices_output;
+
     /* Number of devices read from configuration. */
     int deviceConfigurationSize;
     /* List of pointers to device configurations. */

@@ -40,13 +40,17 @@ uuid_t UUIDS[NUM_UUIDS] = { CREATE_UUID16(0x0), CREATE_UUID16(0x0), CREATE_UUID1
 char *intervalnames[] = {"VOC", "HUMIDITY", "TEMPERATURE", "STATUS"};
 char *fmts[] = {INTERVAL_FLOAT, INTERVAL_ULONG, INTERVAL_ULONG, ""};
 
+const char* DEF_ATMOTUBE_NAME ="ATMOTUBE";
+int DEF_ATMOTUBE_SEARCH_TIMEOUT = 10;
+
 static void init_gl_data(AtmotubeGlData *ptr)
 {
   ptr->adapter = NULL;
   ptr->search_name = NULL;
   ptr->connectableDevices = NULL;
   ptr->foundDevices = NULL;
-
+  ptr->found_devices_output = NULL;
+  
   ptr->deviceConfigurationSize = 0;
   ptr->deviceConfiguration = NULL;
   ptr->plugin_path = NULL;
@@ -64,9 +68,6 @@ void atmotube_start()
 	  exit(1);
       }
   }
-
-  DEF_ATMOTUBE_NAME="ATMOTUBE";
-  DEF_ATMOTUBE_SEARCH_TIMEOUT = 4;
   init_gl_data(&glData);
 }
 
@@ -104,81 +105,6 @@ int atmotube_stop_notification(gatt_connection_t* connection, enum CHARACTER_ID 
   }
 
   return 0;
-}
-
-static void discovered_device(const char* addr, const char* name)
-{
-  PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
-
-  if (strcmp(name, glData.search_name) == 0) {
-      char* temp = malloc(strlen(addr)+1);
-      strcpy(temp, addr);
-      glData.foundDevices = g_slist_append(glData.foundDevices, temp);
-      PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
-  } else {
-      PRINT_DEBUG("Found other device %s\n", name);
-  }
-}
-
-int atmotube_search(const char* name, int timeout)
-{
-  int ret;
-
-  glData.search_name = malloc(strlen(name) + 1);
-  strcpy(glData.search_name, name);
-
-  // Using default adapter.
-  ret = gattlib_adapter_open(NULL, &glData.adapter);
-  if (ret) {
-      PRINT_DEBUG("gattlib_adapter_open failed.\n");
-      return ATMOTUBE_RET_ERROR;
-  }
-
-  PRINT_DEBUG("Searching for %s, timeout=%d.\n", name, timeout);
-  
-  ret = gattlib_adapter_scan_enable(glData.adapter, discovered_device, timeout);
-  if (ret) {
-      PRINT_DEBUG("gattlib_adapter_scan_enable failed.\n");
-      return ATMOTUBE_RET_ERROR;
-  }
-
-  gattlib_adapter_scan_disable(glData.adapter);
-  PRINT_DEBUG("Searching complete\n");
-  
-  gattlib_adapter_close(glData.adapter);
-
-  return ATMOTUBE_RET_OK;
-}
-
-int atmotube_num_found_devices()
-{
-  return g_slist_length(glData.foundDevices);
-}
-
-char** atmotube_get_found_devices()
-{
-  int const size = atmotube_num_found_devices();
-  int buffSize = 0;
-  char** output = NULL;
-  char** ptr = output;
-  GSList *list = NULL;
-  int i;
-
-  if (size == 0) {
-      return NULL;
-  }
-
-  output = malloc(size * sizeof(char*));
-  ptr = output;
-  for (i = 0; i < size; i++) {
-      list = g_slist_nth (glData.foundDevices, i);
-      buffSize = strlen(list->data) + 1;
-      *ptr = malloc(buffSize);
-      strcpy(*ptr, list->data);
-      ptr++;
-  }
-
-  return output;
 }
 
 static void dumpAtmotubeData(AtmotubeData* d)
@@ -454,6 +380,34 @@ uuid_t* atmotube_getuuid(enum CHARACTER_ID id)
     return &UUIDS[id];
 }
 
+static void freeFoundDevice(gpointer data,
+                            gpointer user_data)
+{
+    char* deviceName = (char*)data;
+    UNUSED(user_data);
+    free(deviceName);
+}
+
+static void freeFoundDevices(void)
+{
+    if (glData.foundDevices != NULL) {
+	g_slist_foreach (glData.foundDevices,
+			 freeFoundDevice, NULL);
+	g_slist_free (glData.foundDevices);
+	glData.foundDevices = NULL;
+    }
+
+    if (glData.found_devices_output != NULL) {
+	free(glData.found_devices_output);
+	glData.found_devices_output = NULL;
+    }
+
+    if (glData.search_name != NULL) {
+	free(glData.search_name);
+	glData.search_name = NULL;
+    }
+}
+
 void atmotube_end()
 {
     /* Disconnect, remove any outputs and plugins. */
@@ -461,4 +415,5 @@ void atmotube_end()
     atmotube_unregister();
     atmotube_destroy_outputs();
     atmotube_plugin_unload_all();
+    freeFoundDevices();
 }

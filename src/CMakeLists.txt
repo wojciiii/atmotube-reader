@@ -9,4 +9,5 @@ add_library (atmlib atmotube-private.h
   atmotube-output.c atmotube-output.h atmotube-config.h atmotube-config.c
   atmotube-plugin.c atmotube-plugin.h
   atmotube-interval.h atmotube-interval.c
+  atmotube-search.c
   atmotube.c)

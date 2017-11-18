@@ -58,8 +58,8 @@ struct stored
     int      humidity;
 };
 
-const char* DEF_ATMOTUBE_NAME;
-int DEF_ATMOTUBE_SEARCH_TIMEOUT;
+extern const char* DEF_ATMOTUBE_NAME;
+extern int DEF_ATMOTUBE_SEARCH_TIMEOUT;
 
 // max - max devices
 // resolution - resolution is in miliseconds.
@@ -74,7 +74,7 @@ int atmotube_search(const char* name, int timeout);
 int atmotube_num_found_devices();
 
 // Get list of found devices.
-char** atmotube_get_found_devices();
+const char** atmotube_get_found_devices();
 
 // Read devices from a config file.
 int atmotube_add_devices_from_config(const char* fullName);
