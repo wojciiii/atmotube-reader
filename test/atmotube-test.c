@@ -414,6 +414,73 @@ START_TEST (test_output)
 }
 END_TEST
 
+START_TEST (test_output_db)
+{
+    const char* fullName = "../test/config-db.txt";
+    int ret;
+
+    atmotube_start();
+
+    ret = atmotube_add_devices_from_config(fullName);
+
+    ck_assert(ret == ATMOTUBE_RET_OK);
+	
+    if (ret != ATMOTUBE_RET_OK) {
+	printf("Unable to add devices from config.\n");
+        atmotube_end();
+	return;
+    }
+
+    ret = atmotube_create_outputs();
+
+    ck_assert(ret == ATMOTUBE_RET_OK);
+
+    if (ret != ATMOTUBE_RET_OK) {
+	printf("Unable to create output(s).\n");
+        atmotube_end();
+	return;
+    }
+
+    /* Test that writting to an output plugin works and it generated
+     * the expected output.
+     */
+
+    extern AtmotubeGlData glData;
+
+    printf("Num %d\n", glData.deviceConfigurationSize);
+    
+    AtmotubeData* target = NULL;
+    int i;
+    for (i = 0; i < glData.deviceConfigurationSize; i++) {
+	printf("Data %d\n", i);
+	
+	AtmotubeData* d = glData.deviceConfiguration + i;
+	AtmotubePlugin* plugin = d->plugin;
+	if (plugin != NULL) {
+	    if (strcmp(plugin->type, OUTPUT_DB) == 0) {
+		printf("Found it\n");
+		target = d;
+		break;
+	    }
+	}
+    }
+    
+    ck_assert(target != NULL);
+    
+    unsigned long ts = 0;
+    unsigned long value = 100UL;
+    void* data_ptr = target;
+
+    for (i = 0; i < 5; i++) {
+	output_temperature(ts+i, value+i, data_ptr);
+	output_humidity(ts+i, value+i, data_ptr);
+	output_voc(ts+i, value+i+0.1f, data_ptr);
+    }
+
+    atmotube_end();
+}
+END_TEST
+     
 START_TEST (test_output_file)
 {
     const char* fullName = "../test/config.txt";
@@ -493,6 +560,7 @@ Suite* atmreader_suite(void)
     /* Set timeout, as test_multi_interval can take a while. */
     tcase_set_timeout(tc_core, 30);
     /* Inidividual testcases. */
+    /*
     tcase_add_test(tc_core, test_interval);
     tcase_add_test(tc_core, test_multi_interval);
     tcase_add_test(tc_core, test_handle_VOC_notification);
@@ -503,7 +571,9 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_load_config_offset);
     tcase_add_test(tc_core, test_plugin);
     tcase_add_test(tc_core, test_output);
+    */
     tcase_add_test(tc_core, test_output_file);
+    tcase_add_test(tc_core, test_output_db);
 
     suite_add_tcase(s, tc_core);
     return s;

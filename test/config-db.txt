@@ -1,0 +1,16 @@
+device one {
+    name = "one"
+    address = "B8:27:EB:E9:FD:F0"
+    description = "This is a test device"
+    resolution = 300
+}
+
+output db_one {
+    source = "one"
+    type = "db"
+    filename = "test/atmotube_one.db"
+}
+
+global {
+    plugin_dir = "src/plugin"
+}
