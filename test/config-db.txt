@@ -8,7 +8,7 @@ device one {
 output db_one {
     source = "one"
     type = "db"
-    filename = "test/atmotube_one.db"
+    filename = "test/atmotube_one_db.db"
 }
 
 global {

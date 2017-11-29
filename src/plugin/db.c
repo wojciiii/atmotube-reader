@@ -26,69 +26,99 @@ static const char* type = "db";
 static sqlite3 *datbase_handle = NULL;
 static const char *filename = NULL;
 
-static sqlite3_stmt *insert_device;
+/* Statements used by this plugin. */
+static sqlite3_stmt *stmt_insert_device;
 
 const char* get_plugin_type(void)
 {
     return type;
 }
 
+static int create_statements() {
+    sqlite3_prepare_v2(datbase_handle, "INSERT INTO `device` (name,address) VALUES ('?1','?2');", -1, &stmt_insert_device, NULL);
+
+    return ATMOTUBE_RET_OK;
+}
+
 static int create_tables()
 {
-    const char* create_table_sql = "BEGIN TRANSACTION; \
-CREATE TABLE IF NOT EXISTS `voc` ( \
-	`time`	INTEGER NOT NULL, \
-	`value`	REAL NOT NULL, \
-	`description`	TEXT NOT NULL \
-); \
-CREATE TABLE IF NOT EXISTS `temperature` ( \
-	`time`	NUMERIC NOT NULL, \
-	`value`	INTEGER NOT NULL \
-); \
-CREATE TABLE IF NOT EXISTS `device` ( \
+    const char* statements[] = {
+	"CREATE TABLE IF NOT EXISTS `voc` ( \
+	`time`	INTEGER NOT NULL,	    \
+	`value`	REAL NOT NULL,		    \
+	`description` TEXT NOT NULL);",
+	/* */
+	"CREATE TABLE IF NOT EXISTS `temperature` (	\
+	`time`	NUMERIC NOT NULL,			\
+	`value`	INTEGER NOT NULL);",
+	/* */
+	"CREATE TABLE IF NOT EXISTS `device` (	\
 	`name`	TEXT NOT NULL, \
-	`address`	TEXT NOT NULL \
-); \
-CREATE TABLE IF NOT EXISTS `humidity` ( \
-	`time`	INTEGER NOT NULL, \
-	`value`	INTEGER NOT NULL, \
-	PRIMARY KEY(`time`) \
-); \
-CREATE INDEX IF NOT EXISTS `voc_index` ON `voc` ( \
+	`address` TEXT NOT NULL);",
+	/* */
+	"CREATE TABLE IF NOT EXISTS `humidity` ( \
+	`time`	INTEGER NOT NULL,		 \
+	`value`	INTEGER NOT NULL,		 \
+	PRIMARY KEY(`time`) );",
+	/* */
+	"CREATE INDEX IF NOT EXISTS `voc_index` ON `voc` ( \
+	`time`	ASC,					   \
+	`value`	ASC,					   \
+	`description`	ASC);",
+	/* */
+	"CREATE UNIQUE INDEX IF NOT EXISTS `temperature_index` ON `temperature` ( \
 	`time`	ASC, \
-	`value`	ASC, \
-	`description`	ASC \
-); \
-CREATE UNIQUE INDEX IF NOT EXISTS `temperature_index` ON `temperature` ( \
-	`time`	ASC, \
-	`value`	ASC \
-); \
-CREATE UNIQUE INDEX IF NOT EXISTS `humidity_index` ON `humidity` ( \
-	`time`	ASC, \
-	`value`	ASC \
-); \
-CREATE UNIQUE INDEX IF NOT EXISTS `device_index` ON `device` ( \
+	`value`	ASC);",
+	/* */
+	"CREATE UNIQUE INDEX IF NOT EXISTS `humidity_index` ON `humidity` ( \
+	`time`	ASC,							\
+	`value`	ASC);",
+	/* */
+	"CREATE UNIQUE INDEX IF NOT EXISTS `device_index` ON `device` ( \
 	`name`	ASC, \
-	`address` ASC \
-); \
-COMMIT; \
-";
+	`address` ASC);"
+    };
+
+    uint16_t num_statements = sizeof(statements) / sizeof(char*);
     sqlite3_stmt *createStmt;
 
-    int ret = sqlite3_prepare_v2(datbase_handle, create_table_sql, -1, &createStmt, NULL);
-    if (ret != SQLITE_OK) {
-	PRINT_ERROR("Failed to prepare: %s\n", sqlite3_errmsg(datbase_handle));
-	return ATMOTUBE_RET_ERROR;
+    int i = 0;
+    int ret = 0;
+    for (i = 0; i < num_statements; i++) {
+	PRINT_DEBUG("Execute %d: %s\n", i, statements[i]);
+
+	ret = sqlite3_prepare_v2(datbase_handle, statements[i], -1, &createStmt, NULL);
+	if (ret != SQLITE_OK) {
+	    PRINT_ERROR("Failed to prepare: %s\n", sqlite3_errmsg(datbase_handle));
+	    return ATMOTUBE_RET_ERROR;
+	}
+
+	ret = sqlite3_step(createStmt);
+	if (ret != SQLITE_DONE) {
+	    PRINT_ERROR("Failed to create tables in %s\n", filename);
+	    return ATMOTUBE_RET_ERROR;
+	}
+
+	sqlite3_finalize(createStmt);
     }
     
-    if (sqlite3_step(createStmt) != SQLITE_DONE) {
-	PRINT_ERROR("Failed to create tables in %s\n", filename);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_DEBUG("Created tables (%d)\n", ret);
+    return ATMOTUBE_RET_OK;
+}
+
+static int insert_device(char *name, char* address)
+{
+    /* Insert device */
+    /* INSERT INTO `device` (name,address) VALUES ('1111','00:1A:7D:1E:2E:42'); */
+
+    sqlite3_bind_text(stmt_insert_device, 1, name, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt_insert_device, 2, address, -1, SQLITE_STATIC);
+
+    int ret = sqlite3_step(stmt_insert_device);
+    if (ret != SQLITE_DONE) {
+	PRINT_ERROR("ERROR inserting data: %s\n", sqlite3_errmsg(datbase_handle));
     }
 
-    sqlite3_finalize(createStmt);
-    
-    PRINT_DEBUG("Created tables\n");
     return ATMOTUBE_RET_OK;
 }
 
@@ -97,10 +127,16 @@ int plugin_start(AtmotubeOutput* o)
     PRINT_DEBUG("Opening SQLite3 DB from string: %s with\n", o->filename);
     filename = o->filename;
 
-    int ret = sqlite3_open_v2(o->filename, &datbase_handle, SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    int ret = sqlite3_initialize();
+    if (ret != SQLITE_OK) {
+	PRINT_ERROR("Failed to init DB: %s\n", filename);    
+	return ATMOTUBE_RET_ERROR;
+    }
+    
+    ret = sqlite3_open_v2(filename, &datbase_handle, SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
     PRINT_DEBUG("sqlite3_open_v2, ret = %d\n", ret);
     if (ret != SQLITE_OK) {
-	PRINT_ERROR("Failed to open DB: %s\n", o->filename);    
+	PRINT_ERROR("Failed to open DB: %s\n", filename);    
 	return ATMOTUBE_RET_ERROR;
     }
 
@@ -109,17 +145,9 @@ int plugin_start(AtmotubeOutput* o)
 	return ATMOTUBE_RET_ERROR;
     }
 
-    /* Insert device */
-    /* INSERT INTO `device` (name,address) VALUES ('1111','00:1A:7D:1E:2E:42'); */
-
-    sqlite3_prepare_v2(datbase_handle, "INSERT INTO `device` (name,address) VALUES ('?1','?2');", -1, &insert_device, NULL);
-
-    sqlite3_bind_text(insert_device, 1, "test device", -1, SQLITE_STATIC);
-    sqlite3_bind_text(insert_device, 2, "00:1A:7D:1E:2E:42", -1, SQLITE_STATIC);
-
-    ret = sqlite3_step(insert_device);
-    if (ret != SQLITE_DONE) {
-	PRINT_ERROR("ERROR inserting data: %s\n", sqlite3_errmsg(datbase_handle));
+    ret = create_statements();
+    if (ret != ATMOTUBE_RET_OK) {
+	return ATMOTUBE_RET_ERROR;
     }
     
     started = true;
