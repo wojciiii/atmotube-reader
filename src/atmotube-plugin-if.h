@@ -23,6 +23,8 @@ typedef struct
 {
     /* const char* type; */
     const char* filename;
+    const char* device_name;
+    const char* device_address;
     void* state;
 } AtmotubeOutput;
 

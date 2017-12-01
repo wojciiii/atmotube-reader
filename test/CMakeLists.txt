@@ -17,4 +17,4 @@ target_link_libraries(atmreadertest ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} $
 #-E copy ${CMAKE_CURRENT_SOURCE_DIR}/config.txt ${CMAKE_CURRENT_BINARY_DIR}/config.txt
 #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config.txt)
 
-add_test (NAME test COMMAND atmreadertest)
+add_test (NAME test COMMAND atmreadertest WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

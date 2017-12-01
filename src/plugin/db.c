@@ -27,7 +27,8 @@ static sqlite3 *datbase_handle = NULL;
 static const char *filename = NULL;
 
 /* Statements used by this plugin. */
-static sqlite3_stmt *stmt_insert_device;
+static sqlite3_stmt *stmt_insert_device = NULL;
+static sqlite3_stmt *stmt_select_device = NULL;
 
 const char* get_plugin_type(void)
 {
@@ -36,7 +37,8 @@ const char* get_plugin_type(void)
 
 static int create_statements() {
     sqlite3_prepare_v2(datbase_handle, "INSERT INTO `device` (name,address) VALUES ('?1','?2');", -1, &stmt_insert_device, NULL);
-
+    sqlite3_prepare_v2(datbase_handle, "select rowid from device where name='?1' and address='?2';", -1, &stmt_select_device, NULL);
+    
     return ATMOTUBE_RET_OK;
 }
 
@@ -104,6 +106,26 @@ static int create_tables()
     
     PRINT_DEBUG("Created tables (%d)\n", ret);
     return ATMOTUBE_RET_OK;
+}
+
+/* Get the row ID of the device described by name / address. */
+static int find_device(const char *name, const char *address, int *id)
+{
+    int ret;
+    sqlite3_bind_text(stmt_select_device, 1, name, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt_select_device, 2, address, -1, SQLITE_STATIC);
+    ret = sqlite3_step(stmt_select_device);
+
+    if (ret != SQLITE_DONE) {
+	PRINT_ERROR("ERROR selecting data: %s\n", sqlite3_errmsg(datbase_handle));
+	return ATMOTUBE_RET_ERROR;
+    }
+
+    while ( (ret = sqlite3_step(stmt_select_device)) == SQLITE_ROW) {
+	*id = sqlite3_column_int(stmt_select_device, 1);
+	return ATMOTUBE_RET_OK;
+    }
+    return ATMOTUBE_RET_ERROR;
 }
 
 static int insert_device(char *name, char* address)

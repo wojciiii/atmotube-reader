@@ -51,7 +51,7 @@ int atmotube_create_outputs()
     PRINT_DEBUG("Devices: %d\n", glData.deviceConfigurationSize);
 
     if (glData.deviceConfigurationSize == 0) {
-	PRINT_ERROR("No devices found.\n");
+	PRINT_ERROR("%s\n", "No devices found.");
 	return ATMOTUBE_RET_ERROR;
     }
 
@@ -59,7 +59,7 @@ int atmotube_create_outputs()
     
     ret = atmotube_plugin_find(glData.plugin_path);
     if (ret != ATMOTUBE_RET_OK) {
-	PRINT_ERROR("atmotube_create_outputs, no plugins found.\n");
+	PRINT_ERROR("%s\n", "atmotube_create_outputs, no plugins found.");
 	return ATMOTUBE_RET_ERROR;
     }
 

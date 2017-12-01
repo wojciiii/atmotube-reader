@@ -1,18 +1,18 @@
 /*
-* This file is part of atmotube-reader.
-*
-* atmotube-reader is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-* atmotube-reader is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-* You should have received a copy of the GNU General Public License
-* along with atmotube-reader.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of atmotube-reader.
+ *
+ * atmotube-reader is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * atmotube-reader is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with atmotube-reader.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -30,7 +30,7 @@
 static void atmotube_handle_voc(int device_id, const uint8_t* data, size_t data_length)
 {
     if ((data_length) < 2) {
-	PRINT_DEBUG("handle_voc: no data\n");
+	PRINT_DEBUG("%s\n", "handle_voc: no data");
 	return;
     }
 
@@ -44,7 +44,7 @@ static void atmotube_handle_voc(int device_id, const uint8_t* data, size_t data_
 static void atmotube_handle_humidity(int device_id, const uint8_t* data, size_t data_length)
 {
     if ((data_length) < 1) {
-	PRINT_DEBUG("handle_humidity: no data\n");
+	PRINT_DEBUG("%s\n", "handle_humidity: no data");
 	return;
     }
 
@@ -56,7 +56,7 @@ static void atmotube_handle_humidity(int device_id, const uint8_t* data, size_t 
 static void atmotube_handle_temperature(int device_id, const uint8_t* data, size_t data_length)
 {
     if ((data_length) < 1) {
-	PRINT_DEBUG("handle_temperature: no data\n");
+	PRINT_DEBUG("%s\n", "handle_temperature: no data");
 	return;
     }
 
@@ -70,7 +70,7 @@ static void atmotube_handle_status(int device_id, const uint8_t* data, size_t da
     UNUSED(device_id);
 
     if ((data_length) < 1) {
-	PRINT_DEBUG("handle_status: no data\n");
+	PRINT_DEBUG("%s\n", "handle_status: no data");
 	return;
     }
 
@@ -92,77 +92,73 @@ static void atmotube_handle_status(int device_id, const uint8_t* data, size_t da
     uint8_t battery_percent = (data[0] & battery_mask) * 25;
     bool charging = (data[0] >> charging_offset) & first_bit_mask;
 
-    printf("Status:\n");
+    PRINT_DEBUG("%s\n", "Status:");
 
     if (mode) {
-	printf("\tmode: slow\n");
+	PRINT_DEBUG("%s\n", "\tmode: slow");
     } else {
-	printf("\tmode: fast\n");
+	PRINT_DEBUG("%s\n", "\tmode: fast");
     }
 
     if (calibrating) {
-	printf("\tdev: calibrating\n");
+	PRINT_DEBUG("%s\n", "\tdev: calibrating");
     } else {
-	printf("\tdev: ready\n");
+	PRINT_DEBUG("%s\n", "\tdev: ready");
     }
 
     if (charging) {
-	printf("\tpower: charging\n");
+	PRINT_DEBUG("%s\n", "\tpower: charging");
     } else {
-	printf("\tpower: not charging\n");
+	PRINT_DEBUG("%s\n", "\tpower: not charging");
     }
 
-    printf("\tbattery: %u%%\n", battery_percent);
+    PRINT_DEBUG("\tbattery: %u%%\n", battery_percent);
 }
 
 void atmotube_handle_notification(const uuid_t* uuid, const uint8_t* data,
 				  size_t data_length, void* user_data)
 {
-  int i;
-  enum CHARACTER_ID id = CHARACTER_MAX;
-  AtmotubeData* d = (AtmotubeData*)user_data;
-  const int device_id = d->device.device_id;
+    uint16_t i;
+    enum CHARACTER_ID id = CHARACTER_MAX;
+    AtmotubeData* d = (AtmotubeData*)user_data;
+    const int device_id = d->device.device_id;
   
-  PRINT_DEBUG("Notification Handler for device %d with address: %s:\n",
-	      device_id,
-	      d->device.device_address);
+    PRINT_DEBUG("Notification Handler for device %d with address: %s:\n",
+		device_id,
+		d->device.device_address);
 
-  for (i = VOC; i < CHARACTER_MAX; i++)
-  {
-    if (gattlib_uuid_cmp(uuid, &UUIDS[i]) == 0)
-    {
-      PRINT_DEBUG("Found id %d\n", i);
-      id = (enum CHARACTER_ID)i;
-      break;
+    for (i = VOC; i < CHARACTER_MAX; i++) {
+	if (gattlib_uuid_cmp(uuid, &UUIDS[i]) == 0) {
+	    PRINT_DEBUG("Found id %d\n", i);
+	    id = (enum CHARACTER_ID)i;
+	    break;
+	}
     }
-  }
 
-  switch (id)
-  {
+    switch (id)	{
     case VOC:
-      PRINT_DEBUG("VOC\n");
-      atmotube_handle_voc(device_id, data, data_length);
-      break;
+	PRINT_DEBUG("%s\n", "VOC");
+	atmotube_handle_voc(device_id, data, data_length);
+	break;
     case HUMIDITY:
-      PRINT_DEBUG("HUMIDITY\n");
-      atmotube_handle_humidity(device_id, data, data_length);
-      break;
+	PRINT_DEBUG("%s\n", "HUMIDITY");
+	atmotube_handle_humidity(device_id, data, data_length);
+	break;
     case TEMPERATURE:
-      PRINT_DEBUG("TEMPERATURE\n");
-      atmotube_handle_temperature(device_id, data, data_length);
-      break;
+	PRINT_DEBUG("%s\n", "TEMPERATURE");
+	atmotube_handle_temperature(device_id, data, data_length);
+	break;
     case STATUS:
-      PRINT_DEBUG("STATUS\n");
-      atmotube_handle_status(device_id, data, data_length);
-      break;
+	PRINT_DEBUG("%s\n", "STATUS");
+	atmotube_handle_status(device_id, data, data_length);
+	break;
     default:
-      PRINT_DEBUG("UNKN %d\n", id);
-      break;
-  }
+	PRINT_DEBUG("UNKN %d\n", id);
+	break;
+    }
 
-  for (i = 0; i < data_length; i++)
-  {
-    PRINT_DEBUG("%02x ", data[i]);
-  }
-  PRINT_DEBUG("\n");
+    for (i = 0; i < data_length; i++) {
+	PRINT_DEBUG("%02x ", data[i]);
+    }
+    PRINT_DEBUG("%s", "\n");
 }

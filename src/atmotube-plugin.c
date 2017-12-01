@@ -47,7 +47,7 @@ static int numberOfPlugins = 0;
 #define LOAD_FUNCTION(ptr,function) *(void **) (&ptr) = dlsym(handle, function)
 #define CHECK_DLSYM_RESULT(ptr,function) if (ptr == NULL) { PRINT_ERROR("Unable to load %s\n", function); return ATMOTUBE_RET_ERROR; }
 
-int static plugin_assign(void* handle, AtmotubePlugin *dest) {
+static int plugin_assign(void* handle, AtmotubePlugin *dest) {
 
     PRINT_DEBUG("plugin_assign\n");
     

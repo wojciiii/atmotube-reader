@@ -13,7 +13,7 @@ find_package(LibConfuse)
 find_package(Check)
 find_package(SQLite3)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat -Wunused -Wunused-function -Wunused-label -Wunused-parameter -Wunused-value -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable -g -fdiagnostics-color=auto")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wformat -Wunused -Wunused-function -Wunused-label -Wunused-parameter -Wunused-value -Wunused-variable -Wunused-but-set-parameter -Wunused-but-set-variable -Wmissing-braces -Wextra -pedantic -g -fdiagnostics-color=auto")
 
 if (CHECK_FOUND)
   message(STATUS "Found check")
