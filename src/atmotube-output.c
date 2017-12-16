@@ -76,6 +76,9 @@ int atmotube_create_outputs()
 	}
 	d->output = (AtmotubeOutput*)malloc(sizeof(AtmotubeOutput));
 
+	d->output->device_name = d->device.device_name;
+	d->output->device_address = d->device.device_address;
+	    
 	d->output->filename = d->device.output_filename;
 	d->output->state = NULL;
 
