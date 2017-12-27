@@ -27,6 +27,8 @@
 #include <db.h>
 #include <unistd.h>
 
+#include "atmotube-test-common.h"
+
 START_TEST (test_db_plugin)
 {
     PRINT_DEBUG("%s\n", "test");
@@ -42,7 +44,7 @@ Suite* atmreader_db_suite(void)
     Suite *s;
     TCase *tc_core;
 
-    s = suite_create("atmreader db");
+    s = suite_create("atmreader db test");
 
     /* Core test case */
     tc_core = tcase_create("Core");
@@ -53,7 +55,8 @@ Suite* atmreader_db_suite(void)
     return s;
 }
 
-Suite *suites [] = {
+SuiteCallback suite_callbacks[] = {
     atmreader_db_suite
 };
+int num_suites = sizeof(suite_callbacks) / sizeof(SuiteCallback);
 bool run_init = false;

@@ -17,6 +17,22 @@
 #ifndef ATMOTUBE_TEST_COMMON_H
 #define ATMOTUBE_TEST_COMMON_H
 
+#include <stdbool.h>
+#include <check.h>
+
 int exec_suite(Suite* s, bool atm_init);
+
+/* Run atmotube init? */
+extern bool run_init;
+/* Number of suites to execute. */
+extern int num_suites;
+
+typedef Suite* (*SuiteCallback)(void);
+
+/* Array of callbacks to generate test suites. */
+extern SuiteCallback suite_callbacks[];
+
+/* Array of suites. */
+/* extern Suite *suites[]; */
 
 #endif /* ATMOTUBE_TEST_COMMON_H */

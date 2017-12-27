@@ -26,6 +26,8 @@
 #include <atmotube-handler.h>
 #include <unistd.h>
 
+#include "atmotube-test-common.h"
+
 static char* plugin_path = NULL;
 
 static void set_plugin_path(const char* path)
@@ -580,7 +582,10 @@ Suite* atmreader_suite(void)
     return s;
 }
 
-Suite *suites[] = {
-    atmreader_suite()
+SuiteCallback suite_callbacks[] = {
+    atmreader_suite
 };
+
+int num_suites = sizeof(suite_callbacks) / sizeof(SuiteCallback);
+
 bool run_init = true;

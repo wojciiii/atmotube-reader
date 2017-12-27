@@ -1,5 +1,5 @@
 set(atmotube_test_common_SRCS atmotube-test-common.c atmotube-test-common.h)
-set(atmotube_test_SRCS atmotube-test.c atmotube-db-test.c)
+set(atmotube_test_SRCS atmotube-test.c)
 set(atmotube_db_test_SRCS atmotube-db-test.c)
 #atmotube-test-common.c atmotube-test-common.h)
 
@@ -13,6 +13,7 @@ link_directories(${GATTLIB_LIBDIR})
 
 # Common:
 add_library (atmotube_test_common ${atmotube_test_common_SRCS})
+target_link_libraries(atmotube_test_common atmlib)
 
 # Main test:
 add_executable(atmreadertest ${atmotube_test_SRCS})

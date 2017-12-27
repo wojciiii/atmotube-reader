@@ -16,9 +16,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <check.h>
 #include <unistd.h>
-#include <stdbool.h>
+#include <atmotube.h>
 
 #include "atmotube-test-common.h"
 
@@ -42,15 +41,19 @@ int exec_suite(Suite* s, bool atm_init)
     return number_failed;
 }
 
-extern bool run_init;
-extern Suite *suites[];
-
 int main(void)
 {
     int number_failed = 0;
-    Suite *s;
 
-    for (uint16_t i = 0; i < sizeof(suites) / sizeof(Suite*); i++) {
+    Suite *suites[num_suites];
+    Suite *s = NULL;
+
+    for (uint16_t i = 0; i < num_suites; i++) {
+	SuiteCallback cb = suite_callbacks[i];
+	suites[i] = cb();
+    }
+    
+    for (uint16_t i = 0; i < num_suites; i++) {
 	s = suites[i];
 	number_failed += exec_suite(s, run_init);
     }
