@@ -31,5 +31,16 @@ int db_plugin_find_device(const char *name, const char *address, int *id);
 
 int db_plugin_insert_device(const char *name, const char* address);
 
+void temperature(unsigned long ts, unsigned long value);
+
+void humidity(unsigned long ts, unsigned long value);
+
+void voc(unsigned long ts, float value);
+
+/* Used for unit testing. */
+int get_temperature(unsigned long ts, unsigned long *value);
+int get_humidity(unsigned long ts, unsigned long *value);
+int get_voc(unsigned long ts, float *value);
+
 #endif /* DB_H */
 

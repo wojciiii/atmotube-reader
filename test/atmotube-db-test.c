@@ -48,7 +48,8 @@ typedef enum {
     TO_FIND_DEVICE,
     TO_INSERT_DEVICE,
     TO_DEVICE_FOUND,
-    TO_TEST_DB_PLUGIN
+    TO_TEST_DB_PLUGIN,
+    TO_INSERT_VALUES
 } test_output;
     
 START_TEST (test_create_tables)
@@ -171,10 +172,64 @@ END_TEST
 
 START_TEST (test_db_plugin)
 {
-    PRINT_DEBUG("%s\n", "test");
     setup_output(TO_TEST_DB_PLUGIN);
     int ret = plugin_start(&o);
     ck_assert(ret == ATMOTUBE_RET_OK);
+}
+END_TEST
+
+static int check_values(unsigned long time,
+			unsigned long tempval,
+			unsigned long humval,
+			float vocval)
+{
+    unsigned long temp_from_db;
+    unsigned long hum_from_db;
+    float voc_from_db;
+
+    get_temperature(time, &temp_from_db);
+    if (temp_from_db != tempval) {
+	PRINT_DEBUG("temp_from_db(%lu) != tempval(%lu)\n", temp_from_db, tempval);
+	return ATMOTUBE_RET_ERROR;
+    }
+
+    get_humidity(time, &hum_from_db);
+    if (hum_from_db != humval) {
+	PRINT_DEBUG("hum_from_db(%lu) != humval(%lu)\n", hum_from_db, humval);
+	return ATMOTUBE_RET_ERROR;
+    }
+
+    get_voc(time, &voc_from_db);
+    if (voc_from_db != vocval) {
+	PRINT_DEBUG("voc_from_db(%f) != vocval(%f)\n", voc_from_db, vocval);
+	return ATMOTUBE_RET_ERROR;
+    }
+
+    return ATMOTUBE_RET_OK;
+}
+
+START_TEST(test_insert_values)
+{
+    setup_output(TO_INSERT_VALUES);
+    int ret = plugin_start(&o);
+    ck_assert(ret == ATMOTUBE_RET_OK);
+
+    unsigned long tempval = 0;
+    unsigned long humval = 0;
+    float vocval = 0.0;
+
+    for (unsigned long time = 0; time < 16; time ++) {
+	tempval++;
+	humval++;
+	vocval += 0.10;
+
+	temperature(time, tempval);
+	humidity(time, humval);
+	voc(time, vocval);
+
+	ret = check_values(time, tempval, humval, vocval);
+	ck_assert(ret == ATMOTUBE_RET_OK);
+    }
 }
 END_TEST
 
@@ -195,7 +250,7 @@ Suite* atmreader_db_suite(void)
     tcase_add_test(tc_core, test_insert_device);
     tcase_add_test(tc_core, test_find_device_found);
     tcase_add_test(tc_core, test_db_plugin);
-
+    tcase_add_test(tc_core, test_insert_values);
     suite_add_tcase(s, tc_core);
     return s;
 }

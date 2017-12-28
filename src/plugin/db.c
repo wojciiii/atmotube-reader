@@ -33,7 +33,11 @@ static sqlite3_stmt *stmt_select_device = NULL;
 static sqlite3_stmt *stmt_insert_temp = NULL;
 static sqlite3_stmt *stmt_insert_hum = NULL;
 static sqlite3_stmt *stmt_insert_voc = NULL;
-    
+
+static sqlite3_stmt *stmt_get_temp = NULL;
+static sqlite3_stmt *stmt_get_hum = NULL;
+static sqlite3_stmt *stmt_get_voc = NULL;
+
 static int device_row_id = -1;
 
 const char* get_plugin_type(void)
@@ -133,6 +137,16 @@ int db_plugin_create_statements(void)
     RETURN_ATM_ERROR(ret, "Error creating: insert into humidity");
     ret = sqlite3_prepare_v2(datbase_handle, "INSERT INTO `voc` (device_id,time,value,description) VALUES (?1,?2,?3,?4);", -1, &stmt_insert_voc, NULL);
     RETURN_ATM_ERROR(ret, "Error creating: insert into voc");
+
+    /* Used for testing. */
+    ret = sqlite3_prepare_v2(datbase_handle, "select value from temperature where device_id=?1 and time=?2;", -1, &stmt_get_temp, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: select temperature");
+
+    ret = sqlite3_prepare_v2(datbase_handle, "select value from humidity where device_id=?1 and time=?2;", -1, &stmt_get_hum, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: select hum");
+    
+    ret = sqlite3_prepare_v2(datbase_handle, "select value from voc where device_id=?1 and time=?2;", -1, &stmt_get_voc, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: select voc");
 
     return ATMOTUBE_RET_OK;
 }
@@ -254,11 +268,26 @@ int plugin_stop(void)
     return ATMOTUBE_RET_OK;
 }
 
+/* !!! */
+int get_temperature(unsigned long ts, unsigned long *value)
+{
+    int ret = sqlite3_reset(stmt_get_temp);
+    ret = sqlite3_bind_int64(stmt_get_temp, 1, device_row_id);
+    ret = sqlite3_bind_int64(stmt_get_temp, 2, ts);
+
+    while ( (ret = sqlite3_step(stmt_get_temp)) == SQLITE_ROW) {
+	*value = sqlite3_column_int64(stmt_get_temp, 0);
+	return ATMOTUBE_RET_OK;
+    }
+    return ATMOTUBE_RET_ERROR;
+}
+
 void temperature(unsigned long ts, unsigned long value)
 {
     PRINT_DEBUG("Writing temperature to db(%u): %lu,%lu\n", started, ts, value);
 
     if (started) {
+	sqlite3_reset(stmt_insert_temp);
 	sqlite3_bind_int64(stmt_insert_temp, 1, device_row_id);
 	sqlite3_bind_int64(stmt_insert_temp, 2, ts);
 	sqlite3_bind_int64(stmt_insert_temp, 3, value);
@@ -269,10 +298,24 @@ void temperature(unsigned long ts, unsigned long value)
     }
 }
 
+int get_humidity(unsigned long ts, unsigned long *value)
+{
+    int ret = sqlite3_reset(stmt_get_hum);
+    ret = sqlite3_bind_int64(stmt_get_hum, 1, device_row_id);
+    ret = sqlite3_bind_int64(stmt_get_hum, 2, ts);
+
+    while ( (ret = sqlite3_step(stmt_get_hum)) == SQLITE_ROW) {
+	*value = sqlite3_column_int64(stmt_get_hum, 0);
+	return ATMOTUBE_RET_OK;
+    }
+    return ATMOTUBE_RET_ERROR;
+}
+
 void humidity(unsigned long ts, unsigned long value)
 {
     PRINT_DEBUG("Writing humidity to file(%u): %lu,%lu\n", started, ts, value);
     if (started) {
+	sqlite3_reset(stmt_insert_hum);
 	sqlite3_bind_int64(stmt_insert_hum, 1, device_row_id);
 	sqlite3_bind_int64(stmt_insert_hum, 2, ts);
 	sqlite3_bind_int64(stmt_insert_hum, 3, value);
@@ -283,13 +326,27 @@ void humidity(unsigned long ts, unsigned long value)
     }
 }
 
+int get_voc(unsigned long ts, float *value)
+{
+    int ret = sqlite3_reset(stmt_get_voc);
+    ret = sqlite3_bind_int64(stmt_get_voc, 1, device_row_id);
+    ret = sqlite3_bind_int64(stmt_get_voc, 2, ts);
+
+    while ( (ret = sqlite3_step(stmt_get_voc)) == SQLITE_ROW) {
+	*value = sqlite3_column_double(stmt_get_voc, 0);
+	return ATMOTUBE_RET_OK;
+    }
+    return ATMOTUBE_RET_ERROR;
+}
+
 void voc(unsigned long ts, float value)
 {
     PRINT_DEBUG("Writing voc to file(%u): %lu,%f\n", started, ts, value);
     if (started) {
+	sqlite3_reset(stmt_insert_voc);
 	sqlite3_bind_int64(stmt_insert_voc, 1, device_row_id);
 	sqlite3_bind_int64(stmt_insert_voc, 2, ts);
-	sqlite3_bind_int64(stmt_insert_voc, 3, value);
+	sqlite3_bind_double(stmt_insert_voc, 3, value);
 	sqlite3_bind_text(stmt_insert_voc, 4, "", -1, SQLITE_STATIC);
 
 	int ret = sqlite3_step(stmt_insert_voc);

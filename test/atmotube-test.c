@@ -575,7 +575,7 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_output);
     */
     //tcase_add_test(tc_core, test_output_file);
-    //tcase_add_test(tc_core, test_output_db);
+    tcase_add_test(tc_core, test_output_db);
 
     //tcase_add_test(tc_core, test_db_plugin);
     suite_add_tcase(s, tc_core);
