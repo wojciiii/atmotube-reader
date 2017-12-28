@@ -41,34 +41,32 @@ const char* get_plugin_type(void)
     return type;
 }
 
-static int create_statements() {
-    sqlite3_prepare_v2(datbase_handle, "INSERT INTO `device` (name,address) VALUES ('?1','?2');", -1, &stmt_insert_device, NULL);
-    sqlite3_prepare_v2(datbase_handle, "select rowid from device where name='?1' and address='?2';", -1, &stmt_select_device, NULL);
+#define RETURN_ATM_ERROR(ret, msg) do					\
+	{								\
+	    if (ret != SQLITE_OK) {					\
+		PRINT_ERROR("%s(%s)\n", msg, sqlite3_errmsg(datbase_handle)); \
+		return ATMOTUBE_RET_ERROR;				\
+	    }								\
+	} while(0)
 
-    sqlite3_prepare_v2(datbase_handle, "INSERT INTO `temperature` (time,value) VALUES ('?1','?2', '?3');", -1, &stmt_insert_temp, NULL);
-    sqlite3_prepare_v2(datbase_handle, "INSERT INTO `humidity` (time,value) VALUES ('?1','?2', '?3');", -1, &stmt_insert_hum, NULL);
-    sqlite3_prepare_v2(datbase_handle, "INSERT INTO `voc` (time,value,description) VALUES ('?1','?2, '?3', '?4');", -1, &stmt_insert_voc, NULL);
-    
-    return ATMOTUBE_RET_OK;
-}
-
-static int create_tables()
+int db_plugin_create_tables(void)
 {
     const char* statements[] = {
 	"CREATE TABLE IF NOT EXISTS `voc` ( \
         `device_id` INTEGER NOT NULL,	    \
 	`time`	INTEGER NOT NULL,	    \
 	`value`	REAL NOT NULL,		    \
-	`description` TEXT NOT NULL);",
+	`description` VARCHAR(255) NOT NULL);",
 	/* */
 	"CREATE TABLE IF NOT EXISTS `temperature` (	\
         `device_id` INTEGER NOT NULL,			\
 	`time`	NUMERIC NOT NULL,			\
 	`value`	INTEGER NOT NULL);",
 	/* */
-	"CREATE TABLE IF NOT EXISTS `device` (	\
-	`name`	TEXT NOT NULL, \
-	`address` TEXT NOT NULL);",
+	"CREATE TABLE IF NOT EXISTS `device` (	                \
+        `id`  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,	\
+	`name`	VARCHAR(255) NOT NULL,				\
+	`address` VARCHAR(255) NOT NULL);",
 	/* */
 	"CREATE TABLE IF NOT EXISTS `humidity` ( \
 	`time`	INTEGER NOT NULL,		 \
@@ -123,61 +121,80 @@ static int create_tables()
     return ATMOTUBE_RET_OK;
 }
 
-/* Get the row ID of the device described by name / address. */
-static int find_device(const char *name, const char *address, int *id)
+int db_plugin_create_statements(void)
 {
-    int ret;
-    sqlite3_bind_text(stmt_select_device, 1, name, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt_select_device, 2, address, -1, SQLITE_STATIC);
-    ret = sqlite3_step(stmt_select_device);
+    int ret = sqlite3_prepare_v2(datbase_handle, "INSERT INTO device VALUES (NULL, ?1, ?2);", -1, &stmt_insert_device, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: insert into device");
+    ret = sqlite3_prepare_v2(datbase_handle, "select id from device where name=?1 and address=?2;", -1, &stmt_select_device, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: select from device");
+    ret = sqlite3_prepare_v2(datbase_handle, "INSERT INTO `temperature` (device_id,time,value) VALUES (?1,?2,?3);", -1, &stmt_insert_temp, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: insert into temperature");
+    ret = sqlite3_prepare_v2(datbase_handle, "INSERT INTO `humidity` (device_id,time,value) VALUES (?1,?2,?3);", -1, &stmt_insert_hum, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: insert into humidity");
+    ret = sqlite3_prepare_v2(datbase_handle, "INSERT INTO `voc` (device_id,time,value,description) VALUES (?1,?2,?3,?4);", -1, &stmt_insert_voc, NULL);
+    RETURN_ATM_ERROR(ret, "Error creating: insert into voc");
 
-    if (ret != SQLITE_DONE) {
-	PRINT_ERROR("ERROR selecting data: %s\n", sqlite3_errmsg(datbase_handle));
-	return ATMOTUBE_RET_ERROR;
-    }
+    return ATMOTUBE_RET_OK;
+}
+
+/* Get the row ID of the device described by name / address. */
+int db_plugin_find_device(const char *name, const char *address, int *id)
+{
+    sqlite3_reset(stmt_select_device);
+    int ret = sqlite3_bind_text(stmt_select_device, 1, name, -1, SQLITE_STATIC);
+    ret = sqlite3_bind_text(stmt_select_device, 2, address, -1, SQLITE_STATIC);
 
     while ( (ret = sqlite3_step(stmt_select_device)) == SQLITE_ROW) {
-	*id = sqlite3_column_int(stmt_select_device, 1);
+	*id = sqlite3_column_int(stmt_select_device, 0);
+	PRINT_DEBUG("Found device %s/%s with id = %d\n", name, address, *id);
 	return ATMOTUBE_RET_OK;
     }
+
+    PRINT_ERROR("Device %s/%s not found\n", name, address);
     return ATMOTUBE_RET_ERROR;
 }
 
-static int insert_device(const char *name, const char* address)
+int db_plugin_insert_device(const char *name, const char* address)
 {
     int ret = 0;
     int id = -1;
-    if (find_device(name, address, &id) == ATMOTUBE_RET_OK) {
+    if (db_plugin_find_device(name, address, &id) == ATMOTUBE_RET_OK) {
 	/* Device already exists. */
 	return ATMOTUBE_RET_OK;
     }
 
-    PRINT_DEBUG("%s\n", "Inserting device!");
+    sqlite3_reset(stmt_insert_device);
 
-    ret = sqlite3_bind_text(stmt_insert_device, 1, name, strlen(name), SQLITE_STATIC);
+    ret = sqlite3_bind_text(stmt_insert_device, 1, name, -1, SQLITE_STATIC);
     if (ret != SQLITE_OK) {
 	PRINT_ERROR("ERROR binding '%s': %s\n", name, sqlite3_errmsg(datbase_handle));
+	return ATMOTUBE_RET_ERROR;
     }
 
-    ret = sqlite3_bind_text(stmt_insert_device, 2, address, strlen(address), SQLITE_STATIC);
+    ret = sqlite3_bind_text(stmt_insert_device, 2, address, -1, SQLITE_STATIC);
     if (ret != SQLITE_OK) {
 	PRINT_ERROR("ERROR binding '%s': %s\n", address, sqlite3_errmsg(datbase_handle));
+	return ATMOTUBE_RET_ERROR;
     }
 
     ret = sqlite3_step(stmt_insert_device);
     if (ret != SQLITE_DONE) {
 	PRINT_ERROR("ERROR inserting data: %s\n", sqlite3_errmsg(datbase_handle));
+	return ATMOTUBE_RET_ERROR;
     }
 
+    PRINT_ERROR("Inserted device %s/%s\n", name, address);
     return ATMOTUBE_RET_OK;
 }
 
-int plugin_start(AtmotubeOutput* o)
+int db_plugin_setup_database(const char *file_name,
+			     const char *device_name,
+			     const char *device_address)
 {
-    PRINT_DEBUG("Opening SQLite3 DB from string: %s with\n", o->filename);
-    PRINT_DEBUG("DB, using device '%s' with address '%s'\n", o->device_name, o->device_address);
+    PRINT_DEBUG("Opening SQLite3 DB from string: %s,\n", file_name);
+    PRINT_DEBUG("using device '%s' with address '%s'\n", device_name, device_address);
 
-    filename = o->filename;
+    filename = file_name;
 
     int ret = sqlite3_initialize();
     if (ret != SQLITE_OK) {
@@ -192,20 +209,32 @@ int plugin_start(AtmotubeOutput* o)
 	return ATMOTUBE_RET_ERROR;
     }
 
-    ret = create_tables();
+    return ATMOTUBE_RET_OK;
+}
+
+int plugin_start(AtmotubeOutput* o)
+{
+    int ret = db_plugin_setup_database(o->filename,
+				       o->device_name,
+				       o->device_address);
+    if (ret != ATMOTUBE_RET_OK) {
+	return ATMOTUBE_RET_ERROR;
+    }
+    
+    ret = db_plugin_create_tables();
     if (ret != ATMOTUBE_RET_OK) {
 	return ATMOTUBE_RET_ERROR;
     }
 
-    ret = create_statements();
+    ret = db_plugin_create_statements();
     if (ret != ATMOTUBE_RET_OK) {
 	return ATMOTUBE_RET_ERROR;
     }
 
-    insert_device("1111", "00:1A:7D:1E:2E:42");
-    insert_device(o->device_name, o->device_address);
-
-    if (find_device(o->device_name, o->device_address, &device_row_id) != ATMOTUBE_RET_OK) {
+    db_plugin_insert_device(o->device_name, o->device_address);
+    /* Disregard error code here. */
+    
+    if (db_plugin_find_device(o->device_name, o->device_address, &device_row_id) != ATMOTUBE_RET_OK) {
 	PRINT_ERROR("DB, failed to find device '%s' with address '%s'\n", o->device_name, o->device_address);
 	return ATMOTUBE_RET_ERROR;
     }

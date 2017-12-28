@@ -15,17 +15,29 @@ link_directories(${GATTLIB_LIBDIR})
 add_library (atmotube_test_common ${atmotube_test_common_SRCS})
 target_link_libraries(atmotube_test_common atmlib)
 
-# Main test:
-add_executable(atmreadertest ${atmotube_test_SRCS})
-target_link_libraries(atmreadertest atmlib atmotube_test_common)
-target_link_libraries(atmreadertest ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} ${CHECK_LIBRARIES} pthread dl)
-
 # Database test:
 add_executable(atmreaderdbtest ${atmotube_db_test_SRCS})
 target_link_libraries(atmreaderdbtest atmlib atmotube_test_common)
 target_link_libraries(atmreaderdbtest db)
 target_link_libraries(atmreaderdbtest ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} ${CHECK_LIBRARIES} pthread dl)
+add_test (NAME dbtest COMMAND atmreaderdbtest WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_custom_command(TARGET atmreaderdbtest POST_BUILD
+  COMMAND rm -f test_db_plugin-*.db
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMENT "Removing db unittest output files"
+  )
+
+# Main test:
+add_executable(atmreadertest ${atmotube_test_SRCS})
+target_link_libraries(atmreadertest atmlib atmotube_test_common)
+target_link_libraries(atmreadertest ${LIBCONFUSE_LIBRARY} ${GATTLIB_LIBRARIES} ${CHECK_LIBRARIES} pthread dl)
+
+add_custom_command(TARGET atmreadertest POST_BUILD
+  COMMAND rm -f *.db *.txt
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test
+  COMMENT "Removing unittest output files"
+  )
 
 add_test (NAME test COMMAND atmreadertest WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_test (NAME dbtest COMMAND atmreaderdbtest WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
