@@ -144,10 +144,10 @@ db_plugin_create_tables (void)
 int
 db_plugin_create_statements (void)
 {
-  int ret =
-    sqlite3_prepare_v2 (datbase_handle,
-			"INSERT INTO device VALUES (NULL, ?1, ?2);", -1,
-			&sql_statements[SQLS_INSERT_DEVICE], NULL);
+  int ret = sqlite3_prepare_v2 (datbase_handle,
+				"INSERT INTO device VALUES (NULL, ?1, ?2);",
+				-1,
+				&sql_statements[SQLS_INSERT_DEVICE], NULL);
   RETURN_ATM_ERROR (ret, "Error creating: insert into device");
   ret =
     sqlite3_prepare_v2 (datbase_handle,

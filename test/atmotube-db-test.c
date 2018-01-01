@@ -252,7 +252,8 @@ START_TEST (test_insert_values)
   plugin_stop ();
 }
 
-END_TEST Suite * atmreader_db_suite (void)
+END_TEST Suite *
+atmreader_db_suite (void)
 {
   Suite *s;
   TCase *tc_core;

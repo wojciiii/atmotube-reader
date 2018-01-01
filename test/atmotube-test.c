@@ -125,9 +125,8 @@ START_TEST (test_load_config)
   const char *fullName = "../test/config.txt";
   atmotube_config_start (fullName);
 
-  int ret =
-    atmotube_config_load (set_plugin_path, dummy1, dummy2,
-			  sizeof (Atmotube_Device), 0);
+  int ret = atmotube_config_load (set_plugin_path, dummy1, dummy2,
+				  sizeof (Atmotube_Device), 0);
   if (ret == 0)
     {
       atmotube_config_end ();
@@ -174,9 +173,8 @@ START_TEST (test_load_config_offset)
 
   size_t offset = offsetof (StructWithOffset, device);
   printf ("Using offset: %d\n", offset);
-  int ret =
-    atmotube_config_load (set_plugin_path, dummy4, dummy5,
-			  sizeof (StructWithOffset), offset);
+  int ret = atmotube_config_load (set_plugin_path, dummy4, dummy5,
+				  sizeof (StructWithOffset), offset);
   if (ret == 0)
     {
       atmotube_config_end ();
@@ -395,9 +393,8 @@ START_TEST (test_plugin)
 
   size_t offset = offsetof (StructWithOffset, device);
   printf ("Using offset: %d\n", offset);
-  int ret =
-    atmotube_config_load (set_plugin_path, dummy7, dummy8,
-			  sizeof (StructWithOffset), offset);
+  int ret = atmotube_config_load (set_plugin_path, dummy7, dummy8,
+				  sizeof (StructWithOffset), offset);
   if (ret == 0)
     {
       atmotube_config_end ();
@@ -597,7 +594,8 @@ START_TEST (test_output_file)
   atmotube_end ();
 }
 
-END_TEST Suite * atmreader_suite (void)
+END_TEST Suite *
+atmreader_suite (void)
 {
   Suite *s;
   TCase *tc_core;

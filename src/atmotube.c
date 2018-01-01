@@ -36,9 +36,11 @@ char *CHARACTER_UUIDS[NUM_UUIDS] = {
   "db450004-8e9a-4818-add7-6ed94a328ab2",
   "db450005-8e9a-4818-add7-6ed94a328ab2"
 };
+
 uuid_t UUIDS[NUM_UUIDS] =
   { CREATE_UUID16 (0x0), CREATE_UUID16 (0x0), CREATE_UUID16 (0x0),
-CREATE_UUID16 (0x0) };
+  CREATE_UUID16 (0x0)
+};
 char *intervalnames[] = { "VOC", "HUMIDITY", "TEMPERATURE", "STATUS" };
 char *fmts[] = { INTERVAL_FLOAT, INTERVAL_ULONG, INTERVAL_ULONG, "" };
 
