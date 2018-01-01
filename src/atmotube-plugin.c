@@ -51,7 +51,7 @@ static int
 plugin_assign (void *handle, AtmotubePlugin * dest)
 {
 
-  PRINT_DEBUG ("plugin_assign\n");
+  PRINT_DEBUG ("%s\n", "plugin_assign");
 
   CB_get_plugin_type *get_plugin_type = NULL;
   LOAD_FUNCTION (get_plugin_type, FUNCTION_GET_PLUGIN_TYPE);
@@ -84,7 +84,7 @@ plugin_assign (void *handle, AtmotubePlugin * dest)
   dest->voc = voc;
   dest->plugin_stop = plugin_stop;
 
-  PRINT_DEBUG ("All functions present\n");
+  PRINT_DEBUG ("%s\n", "All functions present");
 
   return ATMOTUBE_RET_OK;
 }
@@ -94,7 +94,7 @@ atmotube_plugin_find (const char *path)
 {
   if (path == NULL)
     {
-      PRINT_ERROR ("atmotube_plugin_find, invalid path\n");
+      PRINT_ERROR ("%s\n", "atmotube_plugin_find, invalid path");
       return ATMOTUBE_RET_ERROR;
     }
 
@@ -169,7 +169,7 @@ atmotube_plugin_get (const char *type)
 
   if (numberOfPlugins == 0)
     {
-      PRINT_ERROR ("No plugins loaded.\n");
+      PRINT_ERROR ("%s\n", "No plugins loaded.");
       return NULL;
     }
 

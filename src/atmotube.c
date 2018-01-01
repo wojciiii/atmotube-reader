@@ -228,14 +228,14 @@ connect_impl (gpointer data, gpointer user_data)
   //d->connection = gattlib_connect_timeout(NULL, d->deviceAddress, BDADDR_LE_RANDOM, BT_SEC_LOW, 0, 0, 5);
   if (d->connection == NULL)
     {
-      PRINT_DEBUG ("Failed to connect to the bluetooth device.\n");
+      PRINT_DEBUG ("%s\n", "Failed to connect to the bluetooth device.");
       d->connected = false;
       *ret += 1;
     }
   else
     {
       d->connected = true;
-      PRINT_DEBUG ("Connected\n");
+      PRINT_DEBUG ("%s\n", "Connected");
     }
 }
 
@@ -256,7 +256,7 @@ disconnect_impl (gpointer data, gpointer user_data)
 	}
       else
 	{
-	  PRINT_DEBUG ("gattlib_disconnect failed\n");
+	  PRINT_DEBUG ("%s\n", "gattlib_disconnect failed");
 	  *ret += 1;
 	  d->connected = false;
 	}
@@ -300,11 +300,11 @@ modify_intervals (AtmotubeData * d, bool add_interval)
 {
   if (add_interval)
     {
-      PRINT_DEBUG ("Adding intervals\n");
+      PRINT_DEBUG ("%s\n", "Adding intervals");
     }
   else
     {
-      PRINT_DEBUG ("Removing intervals\n");
+      PRINT_DEBUG ("%s\n", "Removing intervals");
     }
 
   uint8_t character_id;
@@ -368,10 +368,10 @@ register_impl (gpointer data, gpointer user_data)
       return;
     }
 
-  PRINT_DEBUG ("Register notification\n");
+  PRINT_DEBUG ("%s\n", "Register notification");
   gattlib_register_notification (d->connection, atmotube_handle_notification,
 				 d);
-  PRINT_DEBUG ("Register notification done\n");
+  PRINT_DEBUG ("%s\n", "Register notification done");
 
   /* Add intervals. */
   modify_intervals (d, true);

@@ -42,8 +42,6 @@ present (const char *name)
 static void
 discovered_device (const char *addr, const char *name)
 {
-  // PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
-
   if (name == NULL)
     {
       return;
@@ -55,10 +53,6 @@ discovered_device (const char *addr, const char *name)
       strcpy (temp, addr);
       glData.foundDevices = g_slist_append (glData.foundDevices, temp);
       PRINT_DEBUG ("Found atmotube device with name %s: %s.\n", name, addr);
-      /*
-         } else {
-         PRINT_DEBUG("Found other device %s\n", name);
-       */
     }
 }
 
@@ -70,11 +64,11 @@ atmotube_search (const char *name, int timeout)
   glData.search_name = malloc (strlen (name) + 1);
   strcpy (glData.search_name, name);
 
-  // Using default adapter.
+  /* Using default adapter. */
   ret = gattlib_adapter_open (NULL, &glData.adapter);
   if (ret)
     {
-      PRINT_DEBUG ("gattlib_adapter_open failed.\n");
+      PRINT_DEBUG ("%s\n", "gattlib_adapter_open failed.");
       return ATMOTUBE_RET_ERROR;
     }
 
@@ -84,12 +78,12 @@ atmotube_search (const char *name, int timeout)
     gattlib_adapter_scan_enable (glData.adapter, discovered_device, timeout);
   if (ret)
     {
-      PRINT_DEBUG ("gattlib_adapter_scan_enable failed.\n");
+      PRINT_DEBUG ("%s\n", "gattlib_adapter_scan_enable failed.");
       return ATMOTUBE_RET_ERROR;
     }
 
   gattlib_adapter_scan_disable (glData.adapter);
-  PRINT_DEBUG ("Searching complete\n");
+  PRINT_DEBUG ("%s\n", "Searching complete");
 
   gattlib_adapter_close (glData.adapter);
 

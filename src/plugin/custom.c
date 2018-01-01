@@ -54,7 +54,7 @@ plugin_stop (void)
       return ATMOTUBE_RET_OK;
     }
 
-  PRINT_ERROR ("Invalid state");
+  PRINT_ERROR ("%s\n", "Invalid state");
   return ATMOTUBE_RET_ERROR;
 }
 

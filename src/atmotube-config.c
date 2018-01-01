@@ -188,7 +188,7 @@ dumpDevice (Atmotube_Device * device)
 static Atmotube_Device *
 get_ptr (void *src, int number, size_t element_size, size_t offset)
 {
-  void *p = src;
+  uint8_t *p = src;
   p += (number * element_size);
   p += offset;
   return (Atmotube_Device *) p;
@@ -243,7 +243,7 @@ atmotube_config_load (setPluginPathCB pluginPathCb,
 
   if (path == NULL)
     {
-      PRINT_DEBUG ("Plugin path is not set\n");
+      PRINT_DEBUG ("%s\n", "Plugin path is not set");
       cfg_free (cfg);
       return ATMOTUBE_RET_ERROR;
     }

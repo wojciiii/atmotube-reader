@@ -35,7 +35,7 @@ plugin_start (AtmotubeOutput * o)
 {
   if (o->filename == NULL)
     {
-      PRINT_ERROR ("plugin_start, no filename provided\n");
+      PRINT_ERROR ("%s\n", "plugin_start, no filename provided");
       return ATMOTUBE_RET_ERROR;
     }
 
@@ -63,7 +63,7 @@ plugin_stop (void)
       return ATMOTUBE_RET_OK;
     }
 
-  PRINT_ERROR ("plugin_stop, invalid state\n");
+  PRINT_ERROR ("%s\n", "plugin_stop, invalid state");
   return ATMOTUBE_RET_ERROR;
 }
 
