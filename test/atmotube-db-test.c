@@ -78,6 +78,8 @@ START_TEST (test_create_statements)
 
     ret = db_plugin_create_statements();
     ck_assert(ret == ATMOTUBE_RET_OK);
+
+    db_plugin_destroy_statements();
 }
 END_TEST
 
@@ -98,6 +100,8 @@ START_TEST(test_find_device_not_found)
     int found_id = -1;
     ret = db_plugin_find_device("test", "00", &found_id);
     ck_assert(ret != ATMOTUBE_RET_OK);
+
+    db_plugin_destroy_statements();
 }
 END_TEST
 
@@ -126,6 +130,8 @@ START_TEST(test_insert_device)
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     ck_assert(found_id != -1);
+
+    db_plugin_destroy_statements();
 }
 END_TEST
 
@@ -167,6 +173,8 @@ START_TEST(test_find_device_found)
 
     PRINT_DEBUG("saved_found_id(%d) < found_id(%d)\n", saved_found_id, found_id);
     ck_assert(saved_found_id < found_id);
+
+    db_plugin_destroy_statements();
 }
 END_TEST
 
@@ -175,6 +183,8 @@ START_TEST (test_db_plugin)
     setup_output(TO_TEST_DB_PLUGIN);
     int ret = plugin_start(&o);
     ck_assert(ret == ATMOTUBE_RET_OK);
+
+    plugin_stop();
 }
 END_TEST
 
@@ -230,6 +240,8 @@ START_TEST(test_insert_values)
 	ret = check_values(time, tempval, humval, vocval);
 	ck_assert(ret == ATMOTUBE_RET_OK);
     }
+
+    plugin_stop();
 }
 END_TEST
 

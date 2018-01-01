@@ -27,6 +27,8 @@ int db_plugin_create_tables(void);
 
 int db_plugin_create_statements(void);
 
+void db_plugin_destroy_statements(void);
+
 int db_plugin_find_device(const char *name, const char *address, int *id);
 
 int db_plugin_insert_device(const char *name, const char* address);

@@ -562,7 +562,7 @@ Suite* atmreader_suite(void)
     /* Set timeout, as test_multi_interval can take a while. */
     tcase_set_timeout(tc_core, 30);
     /* Inidividual testcases. */
-    tcase_add_test(tc_core, test_interval);
+    //tcase_add_test(tc_core, test_interval);
     /*
     tcase_add_test(tc_core, test_multi_interval);
     tcase_add_test(tc_core, test_handle_VOC_notification);
