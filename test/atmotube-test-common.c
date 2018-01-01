@@ -27,7 +27,7 @@ int exec_suite(Suite* s, bool atm_init)
     SRunner *sr;
 
     if (atm_init) {
-	atmotube_start();
+    atmotube_start();
     }
 
     sr = srunner_create(s);
@@ -35,7 +35,7 @@ int exec_suite(Suite* s, bool atm_init)
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
     if (atm_init) {
-	atmotube_end();
+    atmotube_end();
     }
 
     return number_failed;
@@ -49,13 +49,13 @@ int main(void)
     Suite *s = NULL;
 
     for (uint16_t i = 0; i < num_suites; i++) {
-	SuiteCallback cb = suite_callbacks[i];
-	suites[i] = cb();
+    SuiteCallback cb = suite_callbacks[i];
+    suites[i] = cb();
     }
     
     for (uint16_t i = 0; i < num_suites; i++) {
-	s = suites[i];
-	number_failed += exec_suite(s, run_init);
+    s = suites[i];
+    number_failed += exec_suite(s, run_init);
     }
 
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;

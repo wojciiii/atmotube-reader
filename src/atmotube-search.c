@@ -28,10 +28,10 @@ static bool present(const char* name)
 {
     GSList *iter;
     for (iter = glData.foundDevices; iter; iter = iter->next) {
-	char* elemName = (char*)iter->data;
-	if (strcmp(name, elemName) == 0) {
-	    return true;
-	}
+    char* elemName = (char*)iter->data;
+    if (strcmp(name, elemName) == 0) {
+        return true;
+    }
     }
     return false;
 }
@@ -41,18 +41,18 @@ static void discovered_device(const char* addr, const char* name)
     // PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
 
     if (name == NULL) {
-	return;
+    return;
     }
 
     if ((strcmp(name, glData.search_name) == 0) && (!present(addr))) {
-	char* temp = malloc(strlen(addr)+1);
-	strcpy(temp, addr);
-	glData.foundDevices = g_slist_append(glData.foundDevices, temp);
-	PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
-	/*
+    char* temp = malloc(strlen(addr)+1);
+    strcpy(temp, addr);
+    glData.foundDevices = g_slist_append(glData.foundDevices, temp);
+    PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
+    /*
     } else {
-	PRINT_DEBUG("Found other device %s\n", name);
-	*/
+    PRINT_DEBUG("Found other device %s\n", name);
+    */
     }
 }
 

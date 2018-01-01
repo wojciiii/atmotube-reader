@@ -34,7 +34,7 @@ void intHandler(int dummy)
     printf("INT handler\n");
     
     if (loop != NULL) {
-	g_main_loop_quit (loop);
+        g_main_loop_quit (loop);
     }
     aborted = true;
 }
@@ -49,7 +49,8 @@ static int sleep_ms(uint16_t milliseconds)
     return nanosleep(&ts, NULL);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     UNUSED(argc);
     UNUSED(argv);
 
@@ -60,16 +61,16 @@ int main(int argc, char *argv[]) {
     
     ret = atmotube_add_devices_from_config(NULL);
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to add devices from config.\n");
+        printf("Unable to add devices from config.\n");
         atmotube_end();
-	return 1;
+        return 1;
     }
 
     ret = atmotube_create_outputs();
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to create output(s).\n");
+        printf("Unable to create output(s).\n");
         atmotube_end();
-	return 1;
+        return 1;
     }
 
     int retry             = 0;
@@ -80,36 +81,36 @@ int main(int argc, char *argv[]) {
     uint16_t increase     = 250;
 
     while (retry < max_retries) {
-	printf("Connecting to device (%d/%d).\n", retry, max_retries);
-	ret = atmotube_connect();
-	if (ret == ATMOTUBE_RET_OK) {
-	    connected = true;
-	    break;
-	}
-	milliseconds = start + (retry * increase);
-	if (sleep_ms(milliseconds) != 0) {
-	    aborted = true;
-	    connected = false;
-	    break;
-	}
+        printf("Connecting to device (%d/%d).\n", retry, max_retries);
+        ret = atmotube_connect();
+        if (ret == ATMOTUBE_RET_OK) {
+            connected = true;
+            break;
+        }
+        milliseconds = start + (retry * increase);
+        if (sleep_ms(milliseconds) != 0) {
+            aborted = true;
+            connected = false;
+            break;
+        }
 
-	if (aborted) {
-	    break;
-	}
-	
-	retry++;
+        if (aborted) {
+            break;
+        }
+
+        retry++;
     }
 
     if (aborted) {
-	printf("Aborted (signal handler).\n");
-	atmotube_end();
-	return 1;
+        printf("Aborted (signal handler).\n");
+        atmotube_end();
+        return 1;
     }
     
     if (!connected) {
-	printf("Failed to connect to device. Giving up.\n");
-	atmotube_end();
-	return 1;
+        printf("Failed to connect to device. Giving up.\n");
+        atmotube_end();
+        return 1;
     }
 
     printf("Registering handlers.\n");

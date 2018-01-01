@@ -48,8 +48,8 @@ typedef void* (NumDevicesCB)(int numDevices);
 
 /* offset - Atmotube_Device offset in the provided memory which is (n x element_size) size bytes. */
 int atmotube_config_load(setPluginPathCB pluginPathCb,
-			 NumDevicesCB numDevicesCb,
-			 deviceCB deviceCb, size_t element_size, size_t offset);
+                         NumDevicesCB numDevicesCb,
+                         deviceCB deviceCb, size_t element_size, size_t offset);
 
 void atmotube_config_end();
 

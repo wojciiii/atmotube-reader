@@ -42,31 +42,27 @@ int main(int argc, char *argv[])
 
     atmotube_start();
     signal(SIGINT, intHandler);
-    
+
     ret = atmotube_search(DEF_ATMOTUBE_NAME,
-			  DEF_ATMOTUBE_SEARCH_TIMEOUT);
-      
-    if (ret != ATMOTUBE_RET_OK)
-    {
-      atmotube_end();
-      return ATMOTUBE_RET_ERROR;
+              DEF_ATMOTUBE_SEARCH_TIMEOUT);
+
+    if (ret != ATMOTUBE_RET_OK) {
+        atmotube_end();
+        return ATMOTUBE_RET_ERROR;
     }
 
     int found = atmotube_num_found_devices();
 
-    if (found == 0)
-    {
-      printf("No devices found.\n");
+    if (found == 0) {
+        printf("No devices found.\n");
     }
-    else
-    {
-      printf("Found %d atmotube device(s):\n", found);
-      devices = atmotube_get_found_devices();
-      for (i = 0; i < found; i++)
-      {
-        device = devices[i];
-        printf("Atmotube device %d: %s\n", i, device);
-      }
+    else {
+        printf("Found %d atmotube device(s):\n", found);
+        devices = atmotube_get_found_devices();
+        for (i = 0; i < found; i++) {
+            device = devices[i];
+            printf("Atmotube device %d: %s\n", i, device);
+        }
     }
     printf("Done\n");
 

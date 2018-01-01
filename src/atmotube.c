@@ -64,8 +64,8 @@ void atmotube_start()
   for (i = VOC; i < STATUS; i++) {
       ret = gattlib_string_to_uuid(CHARACTER_UUIDS[i], strlen(CHARACTER_UUIDS[i]), &UUIDS[i]);
       if (ret != 0) {
-	  PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
-	  exit(1);
+      PRINT_DEBUG("gattlib_string_to_uuid failed (ret=%d)\n", ret);
+      exit(1);
       }
   }
   init_gl_data(&glData);
@@ -125,13 +125,13 @@ static int atmotube_add_device(void* m)
     Atmotube_Device* d = (Atmotube_Device*)m;
     
     if (d->device_resolution < ATMOTUBE_MIN_RESOUTION) {
-	PRINT_DEBUG("Resolution is invalid(%d < %d)\n", d->device_resolution, ATMOTUBE_MIN_RESOUTION);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_DEBUG("Resolution is invalid(%d < %d)\n", d->device_resolution, ATMOTUBE_MIN_RESOUTION);
+    return ATMOTUBE_RET_ERROR;
     }
     
     if (d->device_resolution > ATMOTUBE_MAX_RESOUTION) {
-	PRINT_DEBUG("Resolution is invalid(%d > %d)\n", d->device_resolution, ATMOTUBE_MAX_RESOUTION);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_DEBUG("Resolution is invalid(%d > %d)\n", d->device_resolution, ATMOTUBE_MAX_RESOUTION);
+    return ATMOTUBE_RET_ERROR;
     }
    
     return ATMOTUBE_RET_OK;
@@ -147,8 +147,8 @@ int atmotube_add_devices_from_config(const char* fullName)
 {
   atmotube_config_start(fullName);
   int ret = atmotube_config_load(atmotube_set_plugin_path,
-				 atmotube_num_devices,
-				 atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
+                 atmotube_num_devices,
+                 atmotube_add_device, sizeof(AtmotubeData), offsetof(AtmotubeData, device));
 
   if (ret != ATMOTUBE_RET_OK) {
       /* Deallocate any memory. */
@@ -216,12 +216,12 @@ static void disconnect_impl(gpointer data,
     PRINT_DEBUG("Disconnecting %s\n", d->device.device_address);
 
     if (gattlib_disconnect(d->connection) == 0) {
-	PRINT_DEBUG("Disconnected from %s\n", d->device.device_address);
-	d->connected = false;
+    PRINT_DEBUG("Disconnected from %s\n", d->device.device_address);
+    d->connected = false;
     } else {
-	PRINT_DEBUG("gattlib_disconnect failed\n");
-	*ret += 1;
-	d->connected = false;
+    PRINT_DEBUG("gattlib_disconnect failed\n");
+    *ret += 1;
+    d->connected = false;
     }
   }
 }
@@ -253,44 +253,44 @@ int atmotube_disconnect()
 static void modify_intervals(AtmotubeData* d, bool add_interval)
 {
     if (add_interval) {
-	PRINT_DEBUG("Adding intervals\n");
+    PRINT_DEBUG("Adding intervals\n");
     } else {
-	PRINT_DEBUG("Removing intervals\n");
+    PRINT_DEBUG("Removing intervals\n");
     }
     
     uint8_t character_id;
     uint16_t interval = INTERVAL_SEC_TO_MS(d->device.device_resolution);
     for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
-	const char* label = intervalnames[character_id];
-	const char* fmt = fmts[character_id];
-	if (strlen(fmt) > 0) {
-	    
-	    if (add_interval) {
-		PRINT_DEBUG("Adding interval: %d:%s:%s\n", d->device.device_id, label, fmt);
-		interval_add(d->device.device_id, label, fmt);
-		interval_start(d->device.device_id, label, fmt, interval);
-		
-		switch (character_id) {
-		case VOC:
-		    interval_add_float_callback(d->device.device_id, label, fmt, output_voc, d);
-		    break;
-		case HUMIDITY:
-		    interval_add_ulong_callback(d->device.device_id, label, fmt, output_humidity, d);
-		    break;
-		case TEMPERATURE:
-		    interval_add_ulong_callback(d->device.device_id, label, fmt, output_temperature, d);
-		    break;
-		case STATUS:
-		    break;
-		}
-	    }
-	    else {
-		PRINT_DEBUG("Removing interval: %s:%s\n", label, fmt);
-		interval_remove_callbacks(d->device.device_id, label, fmt);
-		interval_stop(d->device.device_id, label, fmt);
-		interval_remove(d->device.device_id, label, fmt);
-	    }
-	}
+    const char* label = intervalnames[character_id];
+    const char* fmt = fmts[character_id];
+    if (strlen(fmt) > 0) {
+        
+        if (add_interval) {
+        PRINT_DEBUG("Adding interval: %d:%s:%s\n", d->device.device_id, label, fmt);
+        interval_add(d->device.device_id, label, fmt);
+        interval_start(d->device.device_id, label, fmt, interval);
+        
+        switch (character_id) {
+        case VOC:
+            interval_add_float_callback(d->device.device_id, label, fmt, output_voc, d);
+            break;
+        case HUMIDITY:
+            interval_add_ulong_callback(d->device.device_id, label, fmt, output_humidity, d);
+            break;
+        case TEMPERATURE:
+            interval_add_ulong_callback(d->device.device_id, label, fmt, output_temperature, d);
+            break;
+        case STATUS:
+            break;
+        }
+        }
+        else {
+        PRINT_DEBUG("Removing interval: %s:%s\n", label, fmt);
+        interval_remove_callbacks(d->device.device_id, label, fmt);
+        interval_stop(d->device.device_id, label, fmt);
+        interval_remove(d->device.device_id, label, fmt);
+        }
+    }
     }
 }
 
@@ -343,11 +343,11 @@ static void unregister_impl(gpointer data,
     modify_intervals(d, false);
 
     if (d->connected) {
-	uint8_t character_id;
-	for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
-	    PRINT_DEBUG("Stop notify on: %u\n", character_id);
-	    ret += atmotube_stop_notification(d->connection, character_id);
-	}
+    uint8_t character_id;
+    for (character_id = VOC; character_id < CHARACTER_MAX; character_id++) {
+        PRINT_DEBUG("Stop notify on: %u\n", character_id);
+        ret += atmotube_stop_notification(d->connection, character_id);
+    }
     }
 }
 
@@ -391,20 +391,20 @@ static void freeFoundDevice(gpointer data,
 static void freeFoundDevices(void)
 {
     if (glData.foundDevices != NULL) {
-	g_slist_foreach (glData.foundDevices,
-			 freeFoundDevice, NULL);
-	g_slist_free (glData.foundDevices);
-	glData.foundDevices = NULL;
+    g_slist_foreach (glData.foundDevices,
+             freeFoundDevice, NULL);
+    g_slist_free (glData.foundDevices);
+    glData.foundDevices = NULL;
     }
 
     if (glData.found_devices_output != NULL) {
-	free(glData.found_devices_output);
-	glData.found_devices_output = NULL;
+    free(glData.found_devices_output);
+    glData.found_devices_output = NULL;
     }
 
     if (glData.search_name != NULL) {
-	free(glData.search_name);
-	glData.search_name = NULL;
+    free(glData.search_name);
+    glData.search_name = NULL;
     }
 }
 

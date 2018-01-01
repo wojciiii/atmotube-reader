@@ -56,8 +56,8 @@ START_TEST (test_create_tables)
 {
     setup_output(TO_CREATE_TABLES);
     int ret = db_plugin_setup_database(o.filename,
-				       o.device_name,
-				       o.device_address);
+                       o.device_name,
+                       o.device_address);
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     ret = db_plugin_create_tables();
@@ -69,8 +69,8 @@ START_TEST (test_create_statements)
 {
     setup_output(TO_CREATE_STATEMENTS);
     int ret = db_plugin_setup_database(o.filename,
-				       o.device_name,
-				       o.device_address);
+                       o.device_name,
+                       o.device_address);
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     ret = db_plugin_create_tables();
@@ -87,8 +87,8 @@ START_TEST(test_find_device_not_found)
 {
     setup_output(TO_FIND_DEVICE);
     int ret = db_plugin_setup_database(o.filename,
-				       o.device_name,
-				       o.device_address);
+                       o.device_name,
+                       o.device_address);
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     ret = db_plugin_create_tables();
@@ -110,8 +110,8 @@ START_TEST(test_insert_device)
     setup_output(TO_INSERT_DEVICE);
 
     int ret = db_plugin_setup_database(o.filename,
-				       o.device_name,
-				       o.device_address);
+                       o.device_name,
+                       o.device_address);
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     ret = db_plugin_create_tables();
@@ -140,8 +140,8 @@ START_TEST(test_find_device_found)
     setup_output(TO_DEVICE_FOUND);
 
     int ret = db_plugin_setup_database(o.filename,
-				       o.device_name,
-				       o.device_address);
+                       o.device_name,
+                       o.device_address);
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     ret = db_plugin_create_tables();
@@ -189,9 +189,9 @@ START_TEST (test_db_plugin)
 END_TEST
 
 static int check_values(unsigned long time,
-			unsigned long tempval,
-			unsigned long humval,
-			float vocval)
+            unsigned long tempval,
+            unsigned long humval,
+            float vocval)
 {
     unsigned long temp_from_db;
     unsigned long hum_from_db;
@@ -199,20 +199,20 @@ static int check_values(unsigned long time,
 
     get_temperature(time, &temp_from_db);
     if (temp_from_db != tempval) {
-	PRINT_DEBUG("temp_from_db(%lu) != tempval(%lu)\n", temp_from_db, tempval);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_DEBUG("temp_from_db(%lu) != tempval(%lu)\n", temp_from_db, tempval);
+    return ATMOTUBE_RET_ERROR;
     }
 
     get_humidity(time, &hum_from_db);
     if (hum_from_db != humval) {
-	PRINT_DEBUG("hum_from_db(%lu) != humval(%lu)\n", hum_from_db, humval);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_DEBUG("hum_from_db(%lu) != humval(%lu)\n", hum_from_db, humval);
+    return ATMOTUBE_RET_ERROR;
     }
 
     get_voc(time, &voc_from_db);
     if (voc_from_db != vocval) {
-	PRINT_DEBUG("voc_from_db(%f) != vocval(%f)\n", voc_from_db, vocval);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_DEBUG("voc_from_db(%f) != vocval(%f)\n", voc_from_db, vocval);
+    return ATMOTUBE_RET_ERROR;
     }
 
     return ATMOTUBE_RET_OK;
@@ -229,16 +229,16 @@ START_TEST(test_insert_values)
     float vocval = 0.0;
 
     for (unsigned long time = 0; time < 16; time ++) {
-	tempval++;
-	humval++;
-	vocval += 0.10;
+    tempval++;
+    humval++;
+    vocval += 0.10;
 
-	temperature(time, tempval);
-	humidity(time, humval);
-	voc(time, vocval);
+    temperature(time, tempval);
+    humidity(time, humval);
+    voc(time, vocval);
 
-	ret = check_values(time, tempval, humval, vocval);
-	ck_assert(ret == ATMOTUBE_RET_OK);
+    ret = check_values(time, tempval, humval, vocval);
+    ck_assert(ret == ATMOTUBE_RET_OK);
     }
 
     plugin_stop();

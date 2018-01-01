@@ -90,60 +90,60 @@ static int plugin_assign(void* handle, AtmotubePlugin *dest) {
 int atmotube_plugin_find(const char* path)
 {
     if (path == NULL) {
-	PRINT_ERROR("atmotube_plugin_find, invalid path\n");
-	return ATMOTUBE_RET_ERROR;
+    PRINT_ERROR("atmotube_plugin_find, invalid path\n");
+    return ATMOTUBE_RET_ERROR;
     }
     
     PRINT_DEBUG("Searching for DSO(s) in %s\n", path);
 
     DIR* dir = opendir(path);
     if (!dir) {
-	PRINT_ERROR("Unable to read path: %s\n", path);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_ERROR("Unable to read path: %s\n", path);
+    return ATMOTUBE_RET_ERROR;
     }
 
     struct dirent* direntry;
 
     while ((direntry = readdir(dir)) != NULL) {
-	char *filename = direntry->d_name;
-	char *dot = strrchr(filename, '.');
-	if (dot && !strcmp(dot, ".so")) {
-	    const size_t len = strlen(path) + strlen("/") + strlen(filename) + 1;
-	    char fullname[len];
-	    snprintf(&fullname[0], sizeof(fullname), "%s/%s", path, filename);
+    char *filename = direntry->d_name;
+    char *dot = strrchr(filename, '.');
+    if (dot && !strcmp(dot, ".so")) {
+        const size_t len = strlen(path) + strlen("/") + strlen(filename) + 1;
+        char fullname[len];
+        snprintf(&fullname[0], sizeof(fullname), "%s/%s", path, filename);
 
-	    void* libhandle = dlopen(&fullname[0], RTLD_NOW);
-	    if (libhandle == NULL) {
-		PRINT_ERROR("Unable to use plugin: %s\n", &fullname[0]);
-		continue;
-	    }
+        void* libhandle = dlopen(&fullname[0], RTLD_NOW);
+        if (libhandle == NULL) {
+        PRINT_ERROR("Unable to use plugin: %s\n", &fullname[0]);
+        continue;
+        }
 
-	    PRINT_DEBUG("Loading plugin: %s\n", fullname);
+        PRINT_DEBUG("Loading plugin: %s\n", fullname);
 
-	    AtmotubePlugin *info = malloc(sizeof(AtmotubePlugin));
-	    if (plugin_assign(libhandle, info) != ATMOTUBE_RET_OK) {
-		dlclose(info->handle);
-		free(info);
-		info = NULL;
-		continue;
-	    }
+        AtmotubePlugin *info = malloc(sizeof(AtmotubePlugin));
+        if (plugin_assign(libhandle, info) != ATMOTUBE_RET_OK) {
+        dlclose(info->handle);
+        free(info);
+        info = NULL;
+        continue;
+        }
 
-	    info->handle = libhandle;
-	    PRINT_DEBUG("Found function call: %s\n", FUNCTION_GET_PLUGIN_TYPE);
-	    info->type = strdup(info->get_plugin_type());
-	    PRINT_DEBUG("Found plugin type: %s\n", info->type);
+        info->handle = libhandle;
+        PRINT_DEBUG("Found function call: %s\n", FUNCTION_GET_PLUGIN_TYPE);
+        info->type = strdup(info->get_plugin_type());
+        PRINT_DEBUG("Found plugin type: %s\n", info->type);
 
-	    plugins = g_slist_append(plugins, info);
+        plugins = g_slist_append(plugins, info);
 
-	    numberOfPlugins++;
-	}
+        numberOfPlugins++;
+    }
     }
 
     closedir(dir);
 
     if (numberOfPlugins > 0) {
-	PRINT_DEBUG("numberOfPlugins=%d\n", numberOfPlugins);
-	return ATMOTUBE_RET_OK;
+    PRINT_DEBUG("numberOfPlugins=%d\n", numberOfPlugins);
+    return ATMOTUBE_RET_OK;
     }
 
     PRINT_ERROR("No plugins, numberOfPlugins=%d\n", numberOfPlugins);
@@ -156,18 +156,18 @@ AtmotubePlugin* atmotube_plugin_get(const char* type)
     GSList *node;
 
     if (numberOfPlugins == 0) {
-	PRINT_ERROR("No plugins loaded.\n");
-	return NULL;
+    PRINT_ERROR("No plugins loaded.\n");
+    return NULL;
     }
     
     for (i = 0; i < numberOfPlugins; i++) {
-	//PRINT_DEBUG("Plugin %d: %s\n", i, );
-	node = g_slist_nth(plugins, i);
-	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
-	if (strcmp(info->type, type) == 0) {
-	    PRINT_DEBUG("Found plugin %d: %s\n", i, info->type);
-	    return info;
-	}
+    //PRINT_DEBUG("Plugin %d: %s\n", i, );
+    node = g_slist_nth(plugins, i);
+    AtmotubePlugin *info = (AtmotubePlugin*)node->data;
+    if (strcmp(info->type, type) == 0) {
+        PRINT_DEBUG("Found plugin %d: %s\n", i, info->type);
+        return info;
+    }
     }
 
     PRINT_ERROR("Plugin with type '%s' not found\n", type);
@@ -180,11 +180,11 @@ int atmotube_plugin_unload_all()
     GSList *node;
 
     for (i = 0; i < numberOfPlugins; i++) {
-	node = g_slist_nth(plugins, i);
-	AtmotubePlugin *info = (AtmotubePlugin*)node->data;
-	PRINT_DEBUG("Unloading plugin: %s\n", info->type);
-	dlclose(info->handle);
-	free(info);
+    node = g_slist_nth(plugins, i);
+    AtmotubePlugin *info = (AtmotubePlugin*)node->data;
+    PRINT_DEBUG("Unloading plugin: %s\n", info->type);
+    dlclose(info->handle);
+    free(info);
     }
 
     g_slist_free(plugins);

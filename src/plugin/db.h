@@ -20,8 +20,8 @@
 #include "atmotube-plugin-if.h"
 
 int db_plugin_setup_database(const char *file_name,
-			     const char *device_name,
-			     const char *device_address);
+                 const char *device_name,
+                 const char *device_address);
 
 int db_plugin_create_tables(void);
 

@@ -33,8 +33,8 @@ int plugin_start(AtmotubeOutput* o)
 {
     f = fopen(o->filename, "a");
     if (f == NULL) {
-	PRINT_ERROR("Unable to open file %s for appending", o->filename);
-	return ATMOTUBE_RET_ERROR;
+    PRINT_ERROR("Unable to open file %s for appending", o->filename);
+    return ATMOTUBE_RET_ERROR;
     }
     
     started = true;
@@ -44,9 +44,9 @@ int plugin_start(AtmotubeOutput* o)
 int plugin_stop(void)
 {
     if (started) {
-	started = false;
-	fclose(f);
-	return ATMOTUBE_RET_OK;
+    started = false;
+    fclose(f);
+    return ATMOTUBE_RET_OK;
     }
 
     PRINT_ERROR("Invalid state");
@@ -56,20 +56,20 @@ int plugin_stop(void)
 void temperature(unsigned long ts, unsigned long value)
 {
     if (started) {
-	fprintf(f, "%lu,temperature,%lu", ts, value);
+    fprintf(f, "%lu,temperature,%lu", ts, value);
     }
 }
 
 void humidity(unsigned long ts, unsigned long value)
 {
     if (started) {
-	fprintf(f, "%lu,humidity,%lu", ts, value);
+    fprintf(f, "%lu,humidity,%lu", ts, value);
     }
 }
 
 void voc(unsigned long ts, float value)
 {
     if (started) {
-	fprintf(f, "%lu,voc,%f", ts, value);
+    fprintf(f, "%lu,voc,%f", ts, value);
     }
 }

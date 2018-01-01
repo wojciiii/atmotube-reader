@@ -30,20 +30,20 @@ typedef void (*ulong_callback)(unsigned long, unsigned long, void* data_ptr);
 typedef void (*float_callback)(unsigned long, float, void* data_ptr);
 
 int interval_add_ulong_callback(int device_id,
-				const char *label,
-				const char *fmt,
-				ulong_callback callback,
-				void* data_ptr);
+                const char *label,
+                const char *fmt,
+                ulong_callback callback,
+                void* data_ptr);
 
 int interval_add_float_callback(int device_id,
-				const char *label,
-				const char *fmt,
-				float_callback callback,
-				void* data_ptr);
+                const char *label,
+                const char *fmt,
+                float_callback callback,
+                void* data_ptr);
 
 int interval_remove_callbacks(int device_id,
-			      const char *label,
-			      const char *fmt);
+                  const char *label,
+                  const char *fmt);
 
 /* Remove a previously added interval. */
 int interval_remove(int device_id, const char *label, const char *fmt);

@@ -53,7 +53,7 @@ void test_handle_notification(enum CHARACTER_ID id, uint8_t* data, size_t data_l
     AtmotubeData d;
 
     d.device.device_address = "00:00:00:00:00";
-	
+    
     //d.deviceAddress = "00:00:00:00:00";
     void* user_data = &d;
 
@@ -224,8 +224,8 @@ START_TEST (test_interval)
     for (i = 0; i < 21; i++)
     {
         interval_log(device_id, TEST1, INTERVAL_ULONG, t1);
-	interval_log(device_id, TEST2, INTERVAL_FLOAT, f1);
-	interval_log(device_id, TEST3, INTERVAL_ULONG, t3);
+    interval_log(device_id, TEST2, INTERVAL_FLOAT, f1);
+    interval_log(device_id, TEST3, INTERVAL_ULONG, t3);
         usleep(100*1000);
     }
 
@@ -310,29 +310,29 @@ START_TEST (test_multi_interval)
     unsigned int t3 = 2000;
 
     for (device_id = 0; device_id < max_dev_id; device_id++) {    
-	interval_start(device_id, TEST1, INTERVAL_ULONG, 1000);
-	interval_start(device_id, TEST2, INTERVAL_FLOAT, 550);
-	interval_start(device_id, TEST3, INTERVAL_ULONG, 500);
+    interval_start(device_id, TEST1, INTERVAL_ULONG, 1000);
+    interval_start(device_id, TEST2, INTERVAL_FLOAT, 550);
+    interval_start(device_id, TEST3, INTERVAL_ULONG, 500);
     }
 
     for (i = 0; i < 100; i++) {
-	for (device_id = 0; device_id < max_dev_id; device_id++) {
-	    interval_log(device_id, TEST1, INTERVAL_ULONG, t1);
-	    interval_log(device_id, TEST2, INTERVAL_FLOAT, f1);
-	    interval_log(device_id, TEST3, INTERVAL_ULONG, t3);
-	}
-	usleep(10*1000);
+    for (device_id = 0; device_id < max_dev_id; device_id++) {
+        interval_log(device_id, TEST1, INTERVAL_ULONG, t1);
+        interval_log(device_id, TEST2, INTERVAL_FLOAT, f1);
+        interval_log(device_id, TEST3, INTERVAL_ULONG, t3);
+    }
+    usleep(10*1000);
     }
 
     for (device_id = 0; device_id < max_dev_id; device_id++) {    
 
-	interval_stop(device_id, TEST1, INTERVAL_ULONG);
-	interval_stop(device_id, TEST2, INTERVAL_FLOAT);
-	interval_stop(device_id, TEST3, INTERVAL_ULONG);
+    interval_stop(device_id, TEST1, INTERVAL_ULONG);
+    interval_stop(device_id, TEST2, INTERVAL_FLOAT);
+    interval_stop(device_id, TEST3, INTERVAL_ULONG);
 
-	interval_remove(device_id, TEST1, INTERVAL_ULONG);
-	interval_remove(device_id, TEST2, INTERVAL_FLOAT);
-	interval_remove(device_id, TEST3, INTERVAL_ULONG);
+    interval_remove(device_id, TEST1, INTERVAL_ULONG);
+    interval_remove(device_id, TEST2, INTERVAL_FLOAT);
+    interval_remove(device_id, TEST3, INTERVAL_ULONG);
     }
 
     ck_assert(called_dev0 > 0);
@@ -402,14 +402,14 @@ START_TEST (test_output)
 
     ret = atmotube_add_devices_from_config(fullName);
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to add devices from config.\n");
+    printf("Unable to add devices from config.\n");
         atmotube_end();
-	return;
+    return;
     }
 
     ret = atmotube_create_outputs();
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to create output(s).\n");
+    printf("Unable to create output(s).\n");
         atmotube_end();
     }
 
@@ -426,11 +426,11 @@ START_TEST (test_output_db)
     ret = atmotube_add_devices_from_config(fullName);
 
     ck_assert(ret == ATMOTUBE_RET_OK);
-	
+    
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to add devices from config.\n");
+    printf("Unable to add devices from config.\n");
         atmotube_end();
-	return;
+    return;
     }
 
     ret = atmotube_create_outputs();
@@ -438,9 +438,9 @@ START_TEST (test_output_db)
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to create output(s).\n");
+    printf("Unable to create output(s).\n");
         atmotube_end();
-	return;
+    return;
     }
 
     /* Test that writting to an output plugin works and it generated
@@ -454,17 +454,17 @@ START_TEST (test_output_db)
     AtmotubeData* target = NULL;
     int i;
     for (i = 0; i < glData.deviceConfigurationSize; i++) {
-	printf("Data %d\n", i);
-	
-	AtmotubeData* d = glData.deviceConfiguration + i;
-	AtmotubePlugin* plugin = d->plugin;
-	if (plugin != NULL) {
-	    if (strcmp(plugin->type, OUTPUT_DB) == 0) {
-		printf("Found it\n");
-		target = d;
-		break;
-	    }
-	}
+    printf("Data %d\n", i);
+    
+    AtmotubeData* d = glData.deviceConfiguration + i;
+    AtmotubePlugin* plugin = d->plugin;
+    if (plugin != NULL) {
+        if (strcmp(plugin->type, OUTPUT_DB) == 0) {
+        printf("Found it\n");
+        target = d;
+        break;
+        }
+    }
     }
     
     ck_assert(target != NULL);
@@ -474,9 +474,9 @@ START_TEST (test_output_db)
     void* data_ptr = target;
 
     for (i = 0; i < 5; i++) {
-	output_temperature(ts+i, value+i, data_ptr);
-	output_humidity(ts+i, value+i, data_ptr);
-	output_voc(ts+i, value+i+0.1f, data_ptr);
+    output_temperature(ts+i, value+i, data_ptr);
+    output_humidity(ts+i, value+i, data_ptr);
+    output_voc(ts+i, value+i+0.1f, data_ptr);
     }
 
     atmotube_end();
@@ -493,11 +493,11 @@ START_TEST (test_output_file)
     ret = atmotube_add_devices_from_config(fullName);
 
     ck_assert(ret == ATMOTUBE_RET_OK);
-	
+    
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to add devices from config.\n");
+    printf("Unable to add devices from config.\n");
         atmotube_end();
-	return;
+    return;
     }
 
     ret = atmotube_create_outputs();
@@ -505,9 +505,9 @@ START_TEST (test_output_file)
     ck_assert(ret == ATMOTUBE_RET_OK);
 
     if (ret != ATMOTUBE_RET_OK) {
-	printf("Unable to create output(s).\n");
+    printf("Unable to create output(s).\n");
         atmotube_end();
-	return;
+    return;
     }
 
     /* Test that writting to an output plugin works and it generated
@@ -521,17 +521,17 @@ START_TEST (test_output_file)
     AtmotubeData* target = NULL;
     int i;
     for (i = 0; i < glData.deviceConfigurationSize; i++) {
-	printf("Data %d\n", i);
-	
-	AtmotubeData* d = glData.deviceConfiguration + i;
-	AtmotubePlugin* plugin = d->plugin;
-	if (plugin != NULL) {
-	    if (strcmp(plugin->type, OUTPUT_FILE) == 0) {
-		printf("Found it\n");
-		target = d;
-		break;
-	    }
-	}
+    printf("Data %d\n", i);
+    
+    AtmotubeData* d = glData.deviceConfiguration + i;
+    AtmotubePlugin* plugin = d->plugin;
+    if (plugin != NULL) {
+        if (strcmp(plugin->type, OUTPUT_FILE) == 0) {
+        printf("Found it\n");
+        target = d;
+        break;
+        }
+    }
     }
     
     ck_assert(target != NULL);
@@ -541,9 +541,9 @@ START_TEST (test_output_file)
     void* data_ptr = target;
 
     for (i = 0; i < 5; i++) {
-	output_temperature(ts+i, value+i, data_ptr);
-	output_humidity(ts+i, value+i, data_ptr);
-	output_voc(ts+i, value+i+0.1f, data_ptr);
+    output_temperature(ts+i, value+i, data_ptr);
+    output_humidity(ts+i, value+i, data_ptr);
+    output_voc(ts+i, value+i+0.1f, data_ptr);
     }
 
     atmotube_end();
@@ -562,8 +562,7 @@ Suite* atmreader_suite(void)
     /* Set timeout, as test_multi_interval can take a while. */
     tcase_set_timeout(tc_core, 30);
     /* Inidividual testcases. */
-    //tcase_add_test(tc_core, test_interval);
-    /*
+    tcase_add_test(tc_core, test_interval);
     tcase_add_test(tc_core, test_multi_interval);
     tcase_add_test(tc_core, test_handle_VOC_notification);
     tcase_add_test(tc_core, test_handle_TEMPERATURE_notification);
@@ -573,11 +572,8 @@ Suite* atmreader_suite(void)
     tcase_add_test(tc_core, test_load_config_offset);
     tcase_add_test(tc_core, test_plugin);
     tcase_add_test(tc_core, test_output);
-    */
-    //tcase_add_test(tc_core, test_output_file);
+    tcase_add_test(tc_core, test_output_file);
     tcase_add_test(tc_core, test_output_db);
-
-    //tcase_add_test(tc_core, test_db_plugin);
     suite_add_tcase(s, tc_core);
     return s;
 }
