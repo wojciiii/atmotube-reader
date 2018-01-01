@@ -28,9 +28,9 @@
 
 #if (DEBUG)
 #include <stdio.h>
-#  define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
-#  define PRINT_DEBUG(fmt, ...)
+#define PRINT_DEBUG(fmt, ...)
 #endif
 
 #define PRINT_ERROR(fmt, ...) printf(fmt, ##__VA_ARGS__)
@@ -46,55 +46,55 @@ enum CHARACTER_ID
   CHARACTER_MAX
 };
 
-#define ATMOTUBE_MIN_RESOUTION 100     /* ms */
-#define ATMOTUBE_MAX_RESOUTION 60*1000 /* ms */
-#define ATMOTUBE_DEF_RESOUTION 1000    /* ms */
+#define ATMOTUBE_MIN_RESOUTION 100	/* ms */
+#define ATMOTUBE_MAX_RESOUTION 60*1000	/* ms */
+#define ATMOTUBE_DEF_RESOUTION 1000	/* ms */
 
 struct stored
 {
-    uint64_t timestamp;
-    float    voc;
-    int      temperature;
-    int      humidity;
+  uint64_t timestamp;
+  float voc;
+  int temperature;
+  int humidity;
 };
 
-extern const char* DEF_ATMOTUBE_NAME;
+extern const char *DEF_ATMOTUBE_NAME;
 extern int DEF_ATMOTUBE_SEARCH_TIMEOUT;
 
 // max - max devices
 // resolution - resolution is in miliseconds.
 
-void atmotube_start();
-void atmotube_end();
+void atmotube_start ();
+void atmotube_end ();
 
 // Search for atmotube devices.
-int atmotube_search(const char* name, int timeout);
+int atmotube_search (const char *name, int timeout);
 
 // Return the number of found devices.
-int atmotube_num_found_devices();
+int atmotube_num_found_devices ();
 
 // Get list of found devices.
-const char** atmotube_get_found_devices();
+const char **atmotube_get_found_devices ();
 
 // Read devices from a config file.
-int atmotube_add_devices_from_config(const char* fullName);
+int atmotube_add_devices_from_config (const char *fullName);
 
 /* Create output plugins described by config. */
-int atmotube_create_outputs();
+int atmotube_create_outputs ();
 
 /* Find atmotube plugins. */
-int atmotube_plugin_find(const char* path);
+int atmotube_plugin_find (const char *path);
 
 // Add a device to the list of connectable Atmotube devices.
 //int atmotube_add_device(char* name, char* deviceAddress, char* description, int resolution);
 
 // Connect to configured devices.
-int atmotube_connect();
+int atmotube_connect ();
 
-int atmotube_register();
-int atmotube_unregister();
+int atmotube_register ();
+int atmotube_unregister ();
 
 // Disconnect from configured devices.
-int atmotube_disconnect();
+int atmotube_disconnect ();
 
 #endif /* ATMOTUBE_H */

@@ -34,42 +34,42 @@
 /* TODO: rename this! */
 typedef struct
 {
-    /* Description from config:*/
-    Atmotube_Device device;
-    /* Runtime settings: */
-    gatt_connection_t* connection;
-    bool connected;
-    /* bool registred; */
+  /* Description from config: */
+  Atmotube_Device device;
+  /* Runtime settings: */
+  gatt_connection_t *connection;
+  bool connected;
+  /* bool registred; */
 
-    AtmotubeOutput* output;
-    AtmotubePlugin* plugin;
+  AtmotubeOutput *output;
+  AtmotubePlugin *plugin;
 } AtmotubeData;
 
 typedef struct
 {
-    void* adapter;
-    char* search_name;
+  void *adapter;
+  char *search_name;
 
-    GSList* connectableDevices;
-    GSList* foundDevices;
+  GSList *connectableDevices;
+  GSList *foundDevices;
 
-    char** found_devices_output;
+  char **found_devices_output;
 
-    /* Number of devices read from configuration. */
-    int deviceConfigurationSize;
-    /* List of pointers to device configurations. */
-    AtmotubeData* deviceConfiguration;
+  /* Number of devices read from configuration. */
+  int deviceConfigurationSize;
+  /* List of pointers to device configurations. */
+  AtmotubeData *deviceConfiguration;
 
-    const char* plugin_path;
+  const char *plugin_path;
 } AtmotubeGlData;
 
 extern AtmotubeGlData glData;
 
-extern char* CHARACTER_UUIDS[NUM_UUIDS];
+extern char *CHARACTER_UUIDS[NUM_UUIDS];
 extern uuid_t UUIDS[NUM_UUIDS];
 extern char *intervalnames[NUM_UUIDS];
 extern char *fmts[NUM_UUIDS];
 
-uuid_t* atmotube_getuuid(enum CHARACTER_ID id);
+uuid_t *atmotube_getuuid (enum CHARACTER_ID id);
 
 #endif /* ATMOTUBE_PRIVATE_H */

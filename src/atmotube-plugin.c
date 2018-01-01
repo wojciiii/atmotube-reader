@@ -40,157 +40,173 @@
 
 extern AtmotubeGlData glData;
 
-static GSList* plugins = NULL;
+static GSList *plugins = NULL;
 
 static int numberOfPlugins = 0;
 
 #define LOAD_FUNCTION(ptr,function) *(void **) (&ptr) = dlsym(handle, function)
 #define CHECK_DLSYM_RESULT(ptr,function) if (ptr == NULL) { PRINT_ERROR("Unable to load %s\n", function); return ATMOTUBE_RET_ERROR; }
 
-static int plugin_assign(void* handle, AtmotubePlugin *dest) {
-
-    PRINT_DEBUG("plugin_assign\n");
-    
-    CB_get_plugin_type* get_plugin_type = NULL;
-    LOAD_FUNCTION(get_plugin_type, FUNCTION_GET_PLUGIN_TYPE);
-    CHECK_DLSYM_RESULT(get_plugin_type,FUNCTION_GET_PLUGIN_TYPE);
-
-    CB_plugin_start* plugin_start = NULL;
-    LOAD_FUNCTION(plugin_start, FUNCTION_PLUGIN_START);
-    CHECK_DLSYM_RESULT(plugin_start,FUNCTION_PLUGIN_START);
-
-    CB_temperature* temperature = NULL;
-    LOAD_FUNCTION(temperature, FUNCTION_TEMPERATURE);
-    CHECK_DLSYM_RESULT(temperature,FUNCTION_TEMPERATURE);
-
-    CB_humidity* humidity = NULL;
-    LOAD_FUNCTION(humidity, FUNCTION_HUMIDITY);
-    CHECK_DLSYM_RESULT(humidity,FUNCTION_HUMIDITY);
-
-    CB_voc* voc = NULL;
-    LOAD_FUNCTION(voc, FUNCTION_VOC);
-    CHECK_DLSYM_RESULT(voc, FUNCTION_VOC);
-
-    CB_plugin_stop* plugin_stop = NULL;
-    LOAD_FUNCTION(plugin_stop, FUNCTION_PLUGIN_STOP);
-    CHECK_DLSYM_RESULT(plugin_stop,FUNCTION_PLUGIN_STOP);
-
-    dest->get_plugin_type = get_plugin_type;
-    dest->plugin_start = plugin_start;
-    dest->temperature  = temperature;
-    dest->humidity     = humidity;
-    dest->voc          = voc;
-    dest->plugin_stop  = plugin_stop;
-
-    PRINT_DEBUG("All functions present\n");
-    
-    return ATMOTUBE_RET_OK;
-}
-
-int atmotube_plugin_find(const char* path)
+static int
+plugin_assign (void *handle, AtmotubePlugin * dest)
 {
-    if (path == NULL) {
-    PRINT_ERROR("atmotube_plugin_find, invalid path\n");
-    return ATMOTUBE_RET_ERROR;
-    }
-    
-    PRINT_DEBUG("Searching for DSO(s) in %s\n", path);
 
-    DIR* dir = opendir(path);
-    if (!dir) {
-    PRINT_ERROR("Unable to read path: %s\n", path);
-    return ATMOTUBE_RET_ERROR;
-    }
+  PRINT_DEBUG ("plugin_assign\n");
 
-    struct dirent* direntry;
+  CB_get_plugin_type *get_plugin_type = NULL;
+  LOAD_FUNCTION (get_plugin_type, FUNCTION_GET_PLUGIN_TYPE);
+  CHECK_DLSYM_RESULT (get_plugin_type, FUNCTION_GET_PLUGIN_TYPE);
 
-    while ((direntry = readdir(dir)) != NULL) {
-    char *filename = direntry->d_name;
-    char *dot = strrchr(filename, '.');
-    if (dot && !strcmp(dot, ".so")) {
-        const size_t len = strlen(path) + strlen("/") + strlen(filename) + 1;
-        char fullname[len];
-        snprintf(&fullname[0], sizeof(fullname), "%s/%s", path, filename);
+  CB_plugin_start *plugin_start = NULL;
+  LOAD_FUNCTION (plugin_start, FUNCTION_PLUGIN_START);
+  CHECK_DLSYM_RESULT (plugin_start, FUNCTION_PLUGIN_START);
 
-        void* libhandle = dlopen(&fullname[0], RTLD_NOW);
-        if (libhandle == NULL) {
-        PRINT_ERROR("Unable to use plugin: %s\n", &fullname[0]);
-        continue;
-        }
+  CB_temperature *temperature = NULL;
+  LOAD_FUNCTION (temperature, FUNCTION_TEMPERATURE);
+  CHECK_DLSYM_RESULT (temperature, FUNCTION_TEMPERATURE);
 
-        PRINT_DEBUG("Loading plugin: %s\n", fullname);
+  CB_humidity *humidity = NULL;
+  LOAD_FUNCTION (humidity, FUNCTION_HUMIDITY);
+  CHECK_DLSYM_RESULT (humidity, FUNCTION_HUMIDITY);
 
-        AtmotubePlugin *info = malloc(sizeof(AtmotubePlugin));
-        if (plugin_assign(libhandle, info) != ATMOTUBE_RET_OK) {
-        dlclose(info->handle);
-        free(info);
-        info = NULL;
-        continue;
-        }
+  CB_voc *voc = NULL;
+  LOAD_FUNCTION (voc, FUNCTION_VOC);
+  CHECK_DLSYM_RESULT (voc, FUNCTION_VOC);
 
-        info->handle = libhandle;
-        PRINT_DEBUG("Found function call: %s\n", FUNCTION_GET_PLUGIN_TYPE);
-        info->type = strdup(info->get_plugin_type());
-        PRINT_DEBUG("Found plugin type: %s\n", info->type);
+  CB_plugin_stop *plugin_stop = NULL;
+  LOAD_FUNCTION (plugin_stop, FUNCTION_PLUGIN_STOP);
+  CHECK_DLSYM_RESULT (plugin_stop, FUNCTION_PLUGIN_STOP);
 
-        plugins = g_slist_append(plugins, info);
+  dest->get_plugin_type = get_plugin_type;
+  dest->plugin_start = plugin_start;
+  dest->temperature = temperature;
+  dest->humidity = humidity;
+  dest->voc = voc;
+  dest->plugin_stop = plugin_stop;
 
-        numberOfPlugins++;
-    }
-    }
+  PRINT_DEBUG ("All functions present\n");
 
-    closedir(dir);
-
-    if (numberOfPlugins > 0) {
-    PRINT_DEBUG("numberOfPlugins=%d\n", numberOfPlugins);
-    return ATMOTUBE_RET_OK;
-    }
-
-    PRINT_ERROR("No plugins, numberOfPlugins=%d\n", numberOfPlugins);
-    return ATMOTUBE_RET_ERROR;
+  return ATMOTUBE_RET_OK;
 }
 
-AtmotubePlugin* atmotube_plugin_get(const char* type)
+int
+atmotube_plugin_find (const char *path)
 {
-    int i;
-    GSList *node;
-
-    if (numberOfPlugins == 0) {
-    PRINT_ERROR("No plugins loaded.\n");
-    return NULL;
-    }
-    
-    for (i = 0; i < numberOfPlugins; i++) {
-    //PRINT_DEBUG("Plugin %d: %s\n", i, );
-    node = g_slist_nth(plugins, i);
-    AtmotubePlugin *info = (AtmotubePlugin*)node->data;
-    if (strcmp(info->type, type) == 0) {
-        PRINT_DEBUG("Found plugin %d: %s\n", i, info->type);
-        return info;
-    }
+  if (path == NULL)
+    {
+      PRINT_ERROR ("atmotube_plugin_find, invalid path\n");
+      return ATMOTUBE_RET_ERROR;
     }
 
-    PRINT_ERROR("Plugin with type '%s' not found\n", type);
-    return NULL;
+  PRINT_DEBUG ("Searching for DSO(s) in %s\n", path);
+
+  DIR *dir = opendir (path);
+  if (!dir)
+    {
+      PRINT_ERROR ("Unable to read path: %s\n", path);
+      return ATMOTUBE_RET_ERROR;
+    }
+
+  struct dirent *direntry;
+
+  while ((direntry = readdir (dir)) != NULL)
+    {
+      char *filename = direntry->d_name;
+      char *dot = strrchr (filename, '.');
+      if (dot && !strcmp (dot, ".so"))
+	{
+	  const size_t len =
+	    strlen (path) + strlen ("/") + strlen (filename) + 1;
+	  char fullname[len];
+	  snprintf (&fullname[0], sizeof (fullname), "%s/%s", path, filename);
+
+	  void *libhandle = dlopen (&fullname[0], RTLD_NOW);
+	  if (libhandle == NULL)
+	    {
+	      PRINT_ERROR ("Unable to use plugin: %s\n", &fullname[0]);
+	      continue;
+	    }
+
+	  PRINT_DEBUG ("Loading plugin: %s\n", fullname);
+
+	  AtmotubePlugin *info = malloc (sizeof (AtmotubePlugin));
+	  if (plugin_assign (libhandle, info) != ATMOTUBE_RET_OK)
+	    {
+	      dlclose (info->handle);
+	      free (info);
+	      info = NULL;
+	      continue;
+	    }
+
+	  info->handle = libhandle;
+	  PRINT_DEBUG ("Found function call: %s\n", FUNCTION_GET_PLUGIN_TYPE);
+	  info->type = strdup (info->get_plugin_type ());
+	  PRINT_DEBUG ("Found plugin type: %s\n", info->type);
+
+	  plugins = g_slist_append (plugins, info);
+
+	  numberOfPlugins++;
+	}
+    }
+
+  closedir (dir);
+
+  if (numberOfPlugins > 0)
+    {
+      PRINT_DEBUG ("numberOfPlugins=%d\n", numberOfPlugins);
+      return ATMOTUBE_RET_OK;
+    }
+
+  PRINT_ERROR ("No plugins, numberOfPlugins=%d\n", numberOfPlugins);
+  return ATMOTUBE_RET_ERROR;
 }
 
-int atmotube_plugin_unload_all()
+AtmotubePlugin *
+atmotube_plugin_get (const char *type)
 {
-    int i;
-    GSList *node;
+  int i;
+  GSList *node;
 
-    for (i = 0; i < numberOfPlugins; i++) {
-    node = g_slist_nth(plugins, i);
-    AtmotubePlugin *info = (AtmotubePlugin*)node->data;
-    PRINT_DEBUG("Unloading plugin: %s\n", info->type);
-    dlclose(info->handle);
-    free(info);
+  if (numberOfPlugins == 0)
+    {
+      PRINT_ERROR ("No plugins loaded.\n");
+      return NULL;
     }
 
-    g_slist_free(plugins);
-    numberOfPlugins = 0;
-    plugins = NULL;
-    
-    return ATMOTUBE_RET_OK;
+  for (i = 0; i < numberOfPlugins; i++)
+    {
+      //PRINT_DEBUG("Plugin %d: %s\n", i, );
+      node = g_slist_nth (plugins, i);
+      AtmotubePlugin *info = (AtmotubePlugin *) node->data;
+      if (strcmp (info->type, type) == 0)
+	{
+	  PRINT_DEBUG ("Found plugin %d: %s\n", i, info->type);
+	  return info;
+	}
+    }
+
+  PRINT_ERROR ("Plugin with type '%s' not found\n", type);
+  return NULL;
 }
 
+int
+atmotube_plugin_unload_all ()
+{
+  int i;
+  GSList *node;
+
+  for (i = 0; i < numberOfPlugins; i++)
+    {
+      node = g_slist_nth (plugins, i);
+      AtmotubePlugin *info = (AtmotubePlugin *) node->data;
+      PRINT_DEBUG ("Unloading plugin: %s\n", info->type);
+      dlclose (info->handle);
+      free (info);
+    }
+
+  g_slist_free (plugins);
+  numberOfPlugins = 0;
+  plugins = NULL;
+
+  return ATMOTUBE_RET_OK;
+}

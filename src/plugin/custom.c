@@ -21,55 +21,66 @@
 #include "atmotube-config.h"
 
 static bool started = false;
-static FILE* f = NULL;
-static const char* type = "custom";
-    
-const char* get_plugin_type(void)
+static FILE *f = NULL;
+static const char *type = "custom";
+
+const char *
+get_plugin_type (void)
 {
-    return type;
+  return type;
 }
 
-int plugin_start(AtmotubeOutput* o)
+int
+plugin_start (AtmotubeOutput * o)
 {
-    f = fopen(o->filename, "a");
-    if (f == NULL) {
-    PRINT_ERROR("Unable to open file %s for appending", o->filename);
-    return ATMOTUBE_RET_ERROR;
-    }
-    
-    started = true;
-    return -1;
-}
-
-int plugin_stop(void)
-{
-    if (started) {
-    started = false;
-    fclose(f);
-    return ATMOTUBE_RET_OK;
+  f = fopen (o->filename, "a");
+  if (f == NULL)
+    {
+      PRINT_ERROR ("Unable to open file %s for appending", o->filename);
+      return ATMOTUBE_RET_ERROR;
     }
 
-    PRINT_ERROR("Invalid state");
-    return ATMOTUBE_RET_ERROR;
+  started = true;
+  return -1;
 }
 
-void temperature(unsigned long ts, unsigned long value)
+int
+plugin_stop (void)
 {
-    if (started) {
-    fprintf(f, "%lu,temperature,%lu", ts, value);
+  if (started)
+    {
+      started = false;
+      fclose (f);
+      return ATMOTUBE_RET_OK;
+    }
+
+  PRINT_ERROR ("Invalid state");
+  return ATMOTUBE_RET_ERROR;
+}
+
+void
+temperature (unsigned long ts, unsigned long value)
+{
+  if (started)
+    {
+      fprintf (f, "%lu,temperature,%lu", ts, value);
     }
 }
 
-void humidity(unsigned long ts, unsigned long value)
+void
+humidity (unsigned long ts, unsigned long value)
 {
-    if (started) {
-    fprintf(f, "%lu,humidity,%lu", ts, value);
+  if (started)
+    {
+      fprintf (f, "%lu,humidity,%lu", ts, value);
     }
 }
 
-void voc(unsigned long ts, float value)
+void
+voc (unsigned long ts, float value)
 {
-    if (started) {
-    fprintf(f, "%lu,voc,%f", ts, value);
+  if (started)
+    {
+      fprintf (f, "%lu,voc,%f", ts, value);
     }
 }

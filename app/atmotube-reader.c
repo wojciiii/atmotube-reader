@@ -26,106 +26,119 @@
 #include <atmotube.h>
 
 static GMainLoop *loop = NULL;
-static bool aborted    = false;
+static bool aborted = false;
 
-void intHandler(int dummy)
+void
+intHandler (int dummy)
 {
-    UNUSED(dummy);
-    printf("INT handler\n");
-    
-    if (loop != NULL) {
-        g_main_loop_quit (loop);
+  UNUSED (dummy);
+  printf ("INT handler\n");
+
+  if (loop != NULL)
+    {
+      g_main_loop_quit (loop);
     }
-    aborted = true;
+  aborted = true;
 }
 
 /* Sleep for a number of milliseconds. */
-static int sleep_ms(uint16_t milliseconds)
+static int
+sleep_ms (uint16_t milliseconds)
 {
-    struct timespec ts;
-    printf("Sleeping for %d ms.\n", milliseconds);
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = (milliseconds % 1000) * 1000000;
-    return nanosleep(&ts, NULL);
+  struct timespec ts;
+  printf ("Sleeping for %d ms.\n", milliseconds);
+  ts.tv_sec = milliseconds / 1000;
+  ts.tv_nsec = (milliseconds % 1000) * 1000000;
+  return nanosleep (&ts, NULL);
 }
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
-    UNUSED(argc);
-    UNUSED(argv);
+  UNUSED (argc);
+  UNUSED (argv);
 
-    int ret;
+  int ret;
 
-    atmotube_start();
-    signal(SIGINT, intHandler);
-    
-    ret = atmotube_add_devices_from_config(NULL);
-    if (ret != ATMOTUBE_RET_OK) {
-        printf("Unable to add devices from config.\n");
-        atmotube_end();
-        return 1;
+  atmotube_start ();
+  signal (SIGINT, intHandler);
+
+  ret = atmotube_add_devices_from_config (NULL);
+  if (ret != ATMOTUBE_RET_OK)
+    {
+      printf ("Unable to add devices from config.\n");
+      atmotube_end ();
+      return 1;
     }
 
-    ret = atmotube_create_outputs();
-    if (ret != ATMOTUBE_RET_OK) {
-        printf("Unable to create output(s).\n");
-        atmotube_end();
-        return 1;
+  ret = atmotube_create_outputs ();
+  if (ret != ATMOTUBE_RET_OK)
+    {
+      printf ("Unable to create output(s).\n");
+      atmotube_end ();
+      return 1;
     }
 
-    int retry             = 0;
-    int max_retries       = 10;
-    bool connected        = false;
-    uint16_t start        = 500;
-    uint16_t milliseconds = 500;
-    uint16_t increase     = 250;
+  int retry = 0;
+  int max_retries = 10;
+  bool connected = false;
+  uint16_t start = 500;
+  uint16_t milliseconds = 500;
+  uint16_t increase = 250;
 
-    while (retry < max_retries) {
-        printf("Connecting to device (%d/%d).\n", retry, max_retries);
-        ret = atmotube_connect();
-        if (ret == ATMOTUBE_RET_OK) {
-            connected = true;
-            break;
-        }
-        milliseconds = start + (retry * increase);
-        if (sleep_ms(milliseconds) != 0) {
-            aborted = true;
-            connected = false;
-            break;
-        }
+  while (retry < max_retries)
+    {
+      printf ("Connecting to device (%d/%d).\n", retry, max_retries);
+      ret = atmotube_connect ();
+      if (ret == ATMOTUBE_RET_OK)
+	{
+	  connected = true;
+	  break;
+	}
+      milliseconds = start + (retry * increase);
+      if (sleep_ms (milliseconds) != 0)
+	{
+	  aborted = true;
+	  connected = false;
+	  break;
+	}
 
-        if (aborted) {
-            break;
-        }
+      if (aborted)
+	{
+	  break;
+	}
 
-        retry++;
+      retry++;
     }
 
-    if (aborted) {
-        printf("Aborted (signal handler).\n");
-        atmotube_end();
-        return 1;
-    }
-    
-    if (!connected) {
-        printf("Failed to connect to device. Giving up.\n");
-        atmotube_end();
-        return 1;
+  if (aborted)
+    {
+      printf ("Aborted (signal handler).\n");
+      atmotube_end ();
+      return 1;
     }
 
-    printf("Registering handlers.\n");
-    ret = atmotube_register();
-    if (ret != ATMOTUBE_RET_OK) {
-        atmotube_end();
+  if (!connected)
+    {
+      printf ("Failed to connect to device. Giving up.\n");
+      atmotube_end ();
+      return 1;
     }
 
-    printf("Ready to receive.\n");
-    
-    loop = g_main_loop_new(NULL, 0);
-    g_main_loop_run(loop);
-    g_main_loop_unref(loop);
+  printf ("Registering handlers.\n");
+  ret = atmotube_register ();
+  if (ret != ATMOTUBE_RET_OK)
+    {
+      atmotube_end ();
+    }
 
-    atmotube_end();
+  printf ("Ready to receive.\n");
 
-    return 0;
+  loop = g_main_loop_new (NULL, 0);
+  g_main_loop_run (loop);
+  g_main_loop_unref (loop);
+
+  atmotube_end ();
+
+  return 0;
 }

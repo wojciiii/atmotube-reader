@@ -24,33 +24,35 @@
 /* Some other plugin, not implemented yet: */
 #define OUTPUT_CUSTOM "custom"
 
-typedef struct Atmotube_Device_S {
-    /* Device: */
-    int device_id;
-    char* device_name;
-    char* device_address;
-    char* device_description;
-    int device_resolution;
+typedef struct Atmotube_Device_S
+{
+  /* Device: */
+  int device_id;
+  char *device_name;
+  char *device_address;
+  char *device_description;
+  int device_resolution;
 
-    /* Output: */
-    char* output_type;
-    char* output_filename;
+  /* Output: */
+  char *output_type;
+  char *output_filename;
 } Atmotube_Device;
 
-void atmotube_config_start(const char* fullName);
+void atmotube_config_start (const char *fullName);
 
 /* Callbacks used to communicate the found config with the user of
  * this interface.
 */
-typedef void (setPluginPathCB)(const char* plugin_path);
-typedef int (deviceCB)(void* memory);
-typedef void* (NumDevicesCB)(int numDevices);
+typedef void (setPluginPathCB) (const char *plugin_path);
+typedef int (deviceCB) (void *memory);
+typedef void *(NumDevicesCB) (int numDevices);
 
 /* offset - Atmotube_Device offset in the provided memory which is (n x element_size) size bytes. */
-int atmotube_config_load(setPluginPathCB pluginPathCb,
-                         NumDevicesCB numDevicesCb,
-                         deviceCB deviceCb, size_t element_size, size_t offset);
+int atmotube_config_load (setPluginPathCB pluginPathCb,
+			  NumDevicesCB numDevicesCb,
+			  deviceCB deviceCb, size_t element_size,
+			  size_t offset);
 
-void atmotube_config_end();
+void atmotube_config_end ();
 
 #endif /* ATMOTUBE_CONFIG_H */

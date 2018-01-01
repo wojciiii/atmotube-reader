@@ -20,14 +20,14 @@
 #include <stdbool.h>
 #include <check.h>
 
-int exec_suite(Suite* s, bool atm_init);
+int exec_suite (Suite * s, bool atm_init);
 
 /* Run atmotube init? */
 extern bool run_init;
 /* Number of suites to execute. */
 extern int num_suites;
 
-typedef Suite* (*SuiteCallback)(void);
+typedef Suite *(*SuiteCallback) (void);
 
 /* Array of callbacks to generate test suites. */
 extern SuiteCallback suite_callbacks[];

@@ -20,4 +20,3 @@
 #include "atmotube-plugin-if.h"
 
 #endif /* FILE_H */
-

@@ -25,47 +25,52 @@
 
 #include "atmotube.h"
 
-void intHandler(int dummy)
+void
+intHandler (int dummy)
 {
-    UNUSED(dummy);
-    //printf("INT handler\n");
+  UNUSED (dummy);
+  //printf("INT handler\n");
 }
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
-    UNUSED(argc);
-    UNUSED(argv);
-    int ret;
-    const char** devices = NULL;
-    const char* device;
-    int i;
+  UNUSED (argc);
+  UNUSED (argv);
+  int ret;
+  const char **devices = NULL;
+  const char *device;
+  int i;
 
-    atmotube_start();
-    signal(SIGINT, intHandler);
+  atmotube_start ();
+  signal (SIGINT, intHandler);
 
-    ret = atmotube_search(DEF_ATMOTUBE_NAME,
-              DEF_ATMOTUBE_SEARCH_TIMEOUT);
+  ret = atmotube_search (DEF_ATMOTUBE_NAME, DEF_ATMOTUBE_SEARCH_TIMEOUT);
 
-    if (ret != ATMOTUBE_RET_OK) {
-        atmotube_end();
-        return ATMOTUBE_RET_ERROR;
+  if (ret != ATMOTUBE_RET_OK)
+    {
+      atmotube_end ();
+      return ATMOTUBE_RET_ERROR;
     }
 
-    int found = atmotube_num_found_devices();
+  int found = atmotube_num_found_devices ();
 
-    if (found == 0) {
-        printf("No devices found.\n");
+  if (found == 0)
+    {
+      printf ("No devices found.\n");
     }
-    else {
-        printf("Found %d atmotube device(s):\n", found);
-        devices = atmotube_get_found_devices();
-        for (i = 0; i < found; i++) {
-            device = devices[i];
-            printf("Atmotube device %d: %s\n", i, device);
-        }
+  else
+    {
+      printf ("Found %d atmotube device(s):\n", found);
+      devices = atmotube_get_found_devices ();
+      for (i = 0; i < found; i++)
+	{
+	  device = devices[i];
+	  printf ("Atmotube device %d: %s\n", i, device);
+	}
     }
-    printf("Done\n");
+  printf ("Done\n");
 
-    atmotube_end();
-    return ATMOTUBE_RET_OK;
+  atmotube_end ();
+  return ATMOTUBE_RET_OK;
 }

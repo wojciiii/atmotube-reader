@@ -19,30 +19,29 @@
 
 #include "atmotube-plugin-if.h"
 
-int db_plugin_setup_database(const char *file_name,
-                 const char *device_name,
-                 const char *device_address);
+int db_plugin_setup_database (const char *file_name,
+			      const char *device_name,
+			      const char *device_address);
 
-int db_plugin_create_tables(void);
+int db_plugin_create_tables (void);
 
-int db_plugin_create_statements(void);
+int db_plugin_create_statements (void);
 
-void db_plugin_destroy_statements(void);
+void db_plugin_destroy_statements (void);
 
-int db_plugin_find_device(const char *name, const char *address, int *id);
+int db_plugin_find_device (const char *name, const char *address, int *id);
 
-int db_plugin_insert_device(const char *name, const char* address);
+int db_plugin_insert_device (const char *name, const char *address);
 
-void temperature(unsigned long ts, unsigned long value);
+void temperature (unsigned long ts, unsigned long value);
 
-void humidity(unsigned long ts, unsigned long value);
+void humidity (unsigned long ts, unsigned long value);
 
-void voc(unsigned long ts, float value);
+void voc (unsigned long ts, float value);
 
 /* Used for unit testing. */
-int get_temperature(unsigned long ts, unsigned long *value);
-int get_humidity(unsigned long ts, unsigned long *value);
-int get_voc(unsigned long ts, float *value);
+int get_temperature (unsigned long ts, unsigned long *value);
+int get_humidity (unsigned long ts, unsigned long *value);
+int get_voc (unsigned long ts, float *value);
 
 #endif /* DB_H */
-

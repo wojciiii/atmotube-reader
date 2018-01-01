@@ -21,20 +21,20 @@
 
 typedef struct
 {
-    /* const char* type; */
-    const char* filename;
-    const char* device_name;
-    const char* device_address;
-    void* state;
+  /* const char* type; */
+  const char *filename;
+  const char *device_name;
+  const char *device_address;
+  void *state;
 } AtmotubeOutput;
 
 /* Get type of plugin. */
-const char* get_plugin_type(void);
-int plugin_start(AtmotubeOutput* o);
-void temperature(unsigned long ts, unsigned long value);
-void humidity(unsigned long ts, unsigned long value);
-void voc(unsigned long ts, float value);
-int plugin_stop(void);
+const char *get_plugin_type (void);
+int plugin_start (AtmotubeOutput * o);
+void temperature (unsigned long ts, unsigned long value);
+void humidity (unsigned long ts, unsigned long value);
+void voc (unsigned long ts, float value);
+int plugin_stop (void);
 
 /* Plugin interface */
 

@@ -18,10 +18,11 @@
 #define ATMOTUBE_OUTPUT_H
 
 /* Deallocate any plugins. */
-int atmotube_destroy_outputs();
+int atmotube_destroy_outputs ();
 
-void output_temperature(unsigned long ts, unsigned long value, void* data_ptr);
-void output_humidity(unsigned long ts, unsigned long value, void* data_ptr);
-void output_voc(unsigned long ts, float value, void* data_ptr);
+void output_temperature (unsigned long ts, unsigned long value,
+			 void *data_ptr);
+void output_humidity (unsigned long ts, unsigned long value, void *data_ptr);
+void output_voc (unsigned long ts, float value, void *data_ptr);
 
 #endif /* ATMOTUBE_OUTPUT_H */

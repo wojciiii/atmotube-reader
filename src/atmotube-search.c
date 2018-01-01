@@ -24,96 +24,109 @@
 #include "atmotube.h"
 #include "atmotube-private.h"
 
-static bool present(const char* name)
+static bool
+present (const char *name)
 {
-    GSList *iter;
-    for (iter = glData.foundDevices; iter; iter = iter->next) {
-    char* elemName = (char*)iter->data;
-    if (strcmp(name, elemName) == 0) {
-        return true;
+  GSList *iter;
+  for (iter = glData.foundDevices; iter; iter = iter->next)
+    {
+      char *elemName = (char *) iter->data;
+      if (strcmp (name, elemName) == 0)
+	{
+	  return true;
+	}
     }
-    }
-    return false;
+  return false;
 }
 
-static void discovered_device(const char* addr, const char* name)
+static void
+discovered_device (const char *addr, const char *name)
 {
-    // PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
+  // PRINT_DEBUG("Compare %s: %s\n", name, glData.search_name);
 
-    if (name == NULL) {
-    return;
+  if (name == NULL)
+    {
+      return;
     }
 
-    if ((strcmp(name, glData.search_name) == 0) && (!present(addr))) {
-    char* temp = malloc(strlen(addr)+1);
-    strcpy(temp, addr);
-    glData.foundDevices = g_slist_append(glData.foundDevices, temp);
-    PRINT_DEBUG("Found atmotube device with name %s: %s.\n", name, addr);
-    /*
-    } else {
-    PRINT_DEBUG("Found other device %s\n", name);
-    */
+  if ((strcmp (name, glData.search_name) == 0) && (!present (addr)))
+    {
+      char *temp = malloc (strlen (addr) + 1);
+      strcpy (temp, addr);
+      glData.foundDevices = g_slist_append (glData.foundDevices, temp);
+      PRINT_DEBUG ("Found atmotube device with name %s: %s.\n", name, addr);
+      /*
+         } else {
+         PRINT_DEBUG("Found other device %s\n", name);
+       */
     }
 }
 
-int atmotube_search(const char* name, int timeout)
+int
+atmotube_search (const char *name, int timeout)
 {
   int ret;
 
-  glData.search_name = malloc(strlen(name) + 1);
-  strcpy(glData.search_name, name);
+  glData.search_name = malloc (strlen (name) + 1);
+  strcpy (glData.search_name, name);
 
   // Using default adapter.
-  ret = gattlib_adapter_open(NULL, &glData.adapter);
-  if (ret) {
-      PRINT_DEBUG("gattlib_adapter_open failed.\n");
+  ret = gattlib_adapter_open (NULL, &glData.adapter);
+  if (ret)
+    {
+      PRINT_DEBUG ("gattlib_adapter_open failed.\n");
       return ATMOTUBE_RET_ERROR;
-  }
+    }
 
-  PRINT_DEBUG("Searching for %s, timeout=%d.\n", name, timeout);
-  
-  ret = gattlib_adapter_scan_enable(glData.adapter, discovered_device, timeout);
-  if (ret) {
-      PRINT_DEBUG("gattlib_adapter_scan_enable failed.\n");
+  PRINT_DEBUG ("Searching for %s, timeout=%d.\n", name, timeout);
+
+  ret =
+    gattlib_adapter_scan_enable (glData.adapter, discovered_device, timeout);
+  if (ret)
+    {
+      PRINT_DEBUG ("gattlib_adapter_scan_enable failed.\n");
       return ATMOTUBE_RET_ERROR;
-  }
+    }
 
-  gattlib_adapter_scan_disable(glData.adapter);
-  PRINT_DEBUG("Searching complete\n");
-  
-  gattlib_adapter_close(glData.adapter);
+  gattlib_adapter_scan_disable (glData.adapter);
+  PRINT_DEBUG ("Searching complete\n");
+
+  gattlib_adapter_close (glData.adapter);
 
   return ATMOTUBE_RET_OK;
 }
 
-int atmotube_num_found_devices()
+int
+atmotube_num_found_devices ()
 {
-  return g_slist_length(glData.foundDevices);
+  return g_slist_length (glData.foundDevices);
 }
 
-const char** atmotube_get_found_devices()
+const char **
+atmotube_get_found_devices ()
 {
-  int const size = atmotube_num_found_devices();
+  int const size = atmotube_num_found_devices ();
   int buffSize = 0;
-  char** output = NULL;
-  char** ptr = output;
+  char **output = NULL;
+  char **ptr = output;
   GSList *list = NULL;
   int i;
 
-  if (size == 0) {
+  if (size == 0)
+    {
       return NULL;
-  }
+    }
 
-  glData.found_devices_output = malloc(size * sizeof(char*));
+  glData.found_devices_output = malloc (size * sizeof (char *));
   ptr = glData.found_devices_output;
-  for (i = 0; i < size; i++) {
+  for (i = 0; i < size; i++)
+    {
       list = g_slist_nth (glData.foundDevices, i);
-      buffSize = strlen(list->data) + 1;
-      *ptr = malloc(buffSize);
-      strcpy(*ptr, list->data);
+      buffSize = strlen (list->data) + 1;
+      *ptr = malloc (buffSize);
+      strcpy (*ptr, list->data);
       ptr++;
-  }
+    }
 
-  return (const char**)glData.found_devices_output;
+  return (const char **) glData.found_devices_output;
 }
-
