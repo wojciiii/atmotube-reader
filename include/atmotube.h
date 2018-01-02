@@ -28,12 +28,12 @@
 
 #if (DEBUG)
 #include <stdio.h>
-#define PRINT_DEBUG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINT_DEBUG(...) printf(__VA_ARGS__)
 #else
-#define PRINT_DEBUG(fmt, ...)
+#define PRINT_DEBUG(...)
 #endif
 
-#define PRINT_ERROR(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define PRINT_ERROR(...) printf(__VA_ARGS__)
 
 #define UNUSED(x) (void)(x)
 

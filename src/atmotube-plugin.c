@@ -51,7 +51,7 @@ static int
 plugin_assign (void *handle, AtmotubePlugin * dest)
 {
 
-  PRINT_DEBUG ("%s\n", "plugin_assign");
+  PRINT_DEBUG ("plugin_assign\n");
 
   CB_get_plugin_type *get_plugin_type = NULL;
   LOAD_FUNCTION (get_plugin_type, FUNCTION_GET_PLUGIN_TYPE);
